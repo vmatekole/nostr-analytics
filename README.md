@@ -35,3 +35,6 @@ Data on Decentralised social networks is sharded and distributed across multiple
 
 
 ## Usage
+
+## Acknowledgements
+Thanks to [python-nostr] author of [python-nostr] where the Nostr [base models](src/models/nostr/) were largely taken from.
