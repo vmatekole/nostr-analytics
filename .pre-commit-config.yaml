@@ -1,0 +1,32 @@
+minimum_pre_commit_version: 2.8.0
+default_stages: [commit, push, manual]
+repos:
+  - repo: https://github.com/psf/black
+    rev: 22.3.0
+    hooks:
+      - id: black
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.2.0
+    hooks:
+      - id: check-added-large-files
+        args: [--maxkb=800]
+      - id: debug-statements
+      - id: detect-aws-credentials
+        args: [--allow-missing-credentials]
+      - id: detect-private-key
+      - id: end-of-file-fixer
+      - id: forbid-new-submodules
+      - id: mixed-line-ending
+      - id: trailing-whitespace
+      - id: double-quote-string-fixer
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        args: ["--profile", "black", "--filter-files"]
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: 07fd005
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args: []
