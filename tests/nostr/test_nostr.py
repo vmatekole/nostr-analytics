@@ -1,5 +1,6 @@
 import json
 import unittest
+from dataclasses import asdict
 from unittest import result
 
 import pytest
@@ -28,7 +29,6 @@ class TestEvent:
     def test_parsing_event(self, event_input_data_3, expected_event_obj_3):
         json_array = json.loads(event_input_data_3)
 
-        print(json_array)
-        result: Event = Event(**json_array[2])
+        result: Event = Event.parse_event(json_array[2])
 
-        assert result == expected_event_obj_3
+        assert asdict(result) == expected_event_obj_3

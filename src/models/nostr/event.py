@@ -1,9 +1,10 @@
 import json
 import time
+from ast import alias
 from dataclasses import asdict, dataclass, field
 from enum import IntEnum
 from hashlib import sha256
-from typing import List
+from typing import Any, List
 
 from .message_type import ClientMessageType
 
@@ -20,17 +21,22 @@ class EventKind(IntEnum):
 @dataclass
 class Event:
     content: str = field(metadata={'text': 'nostr txt content'})
-    public_key: str = field(
+    pubkey: str = field(
         metadata={
-            'public key': '32-bytes lowercase hex-encoded public key of the event creator'
+            'public key': (
+                '32-bytes lowercase hex-encoded public key of the event creator'
+            )
         }
     )
     created_at: int = field(metadata={'seconds': 'unix timestamp in seconds'})
     kind: int = EventKind.TEXT_NOTE
-    signature: str = field(
+    sig: tuple[Any] = field(
         default=None,
         metadata={
-            'event signature': '64-bytes lowercase hex of the signature of the sha256 hash of the serialized event data, which is the same as the "id" field'
+            'event signature': (
+                '64-bytes lowercase hex of the signature of the sha256 hash of the'
+                ' serialized event data, which is the same as the "id" field'
+            )
         },
     )
     tags: List[List[str]] = field(
@@ -56,11 +62,18 @@ class Event:
 
     @staticmethod
     def serialize(
-        public_key: str, created_at: int, kind: int, tags: List[List[str]], content: str
+        pubkey: str, created_at: int, kind: int, tags: List[List[str]], content: str
     ) -> bytes:
-        data = [0, public_key, created_at, kind, tags, content]
+        data = [0, pubkey, created_at, kind, tags, content]
         data_str: str = json.dumps(data, separators=(',', ':'), ensure_ascii=False)
         return data_str.encode()
+
+    @staticmethod
+    def parse_event(e) -> 'Event':
+        e.pop(
+            'id'
+        )  # The id is always computed, check compute_id function for reference
+        return Event(**e)
 
     """Generate a sha256 of the event
 
@@ -70,10 +83,10 @@ class Event:
 
     @staticmethod
     def compute_id(
-        public_key: str, created_at: int, kind: int, tags: List[List[str]], content: str
+        pubkey: str, created_at: int, kind: int, tags: List[List[str]], content: str
     ) -> str:
         return sha256(
-            Event.serialize(public_key, created_at, kind, tags, content)
+            Event.serialize(pubkey, created_at, kind=kind, tags=tags, content=content)
         ).hexdigest()
 
     """32-bytes lowercase hex-encoded sha256 of the serialized event data
@@ -86,7 +99,7 @@ class Event:
     def id(self) -> str:
         # Always recompute the id to reflect the up-to-date state of the Event
         return Event.compute_id(
-            self.public_key, self.created_at, self.kind, self.tags, self.content
+            self.pubkey, self.created_at, self.kind, self.tags, self.content
         )
 
     @property
@@ -95,7 +108,7 @@ class Event:
 
     @property
     def pub_key(self) -> str:
-        return self.public_key
+        return self.pubkey
 
     # def add_pubkey_ref(self, pubkey:str):
     #     """ Adds a reference to a pubkey as a 'p' tag """
@@ -117,16 +130,16 @@ class Event:
                 ClientMessageType.EVENT,
                 {
                     'id': self.id,
-                    'pubkey': self.public_key,
+                    'pubkey': self.pubkey,
                     'created_at': self.created_at,
                     'kind': self.kind,
                     'tags': self.tags,
                     'content': self.content,
-                    'sig': self.signature,
+                    'sig': self.sig,
                 },
             ]
         )
 
     def to_bytes(self) -> bytes:
-        filtered_dict = {k: v for k, v in self.__dict__.items() if k != 'signature'}
+        filtered_dict = {k: v for k, v in self.__dict__.items() if k != 'sig'}
         return Event.serialize(*filtered_dict.values())

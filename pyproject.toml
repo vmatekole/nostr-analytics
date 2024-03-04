@@ -6,12 +6,9 @@ authors = [
     {name = "Victor Matekole", email = "github@matekole.com"},
 ]
 dependencies = [
-    "websockets>=12.0",
-    "bitcoinlib>=0.6.14",
     "python-dotenv>=1.0.1",
-    "btclib>=2023.7.12",
     "pysodium>=0.7.17",
-    "pynostr>=0.6.2",
+    "websocket-client>=1.7.0",
 ]
 requires-python = ">=3.9"
 readme = "README.md"

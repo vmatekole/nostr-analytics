@@ -30,6 +30,8 @@ Data on Decentralised social networks is sharded and distributed across multiple
   - BigQuery datasets
   - Metabase dashboards
 
+## Architecture
+
 ## Future considerations
 – Splitting producer and consumer services
 
