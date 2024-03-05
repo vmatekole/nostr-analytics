@@ -16,7 +16,7 @@ from utils import log
 load_dotenv()
 
 
-filters = Filters([Filter(kinds=[EventKind.TEXT_NOTE])])
+filters = Filters(initlist=[Filter(kinds=[EventKind.TEXT_NOTE])])
 subscription_id = 'foo'
 request = [ClientMessageType.REQUEST, subscription_id]
 request.extend(filters.to_json_array())
