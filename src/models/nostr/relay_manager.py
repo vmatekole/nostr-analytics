@@ -7,7 +7,6 @@ from threading import Lock
 from .event import Event
 from .filter import Filters
 from .message_pool import MessagePool
-from .message_type import ClientMessageType
 from .relay import Relay, RelayPolicy, RelayProxyConnectionConfig
 from .request import Request
 
@@ -48,6 +47,12 @@ class RelayManager:
         with self.lock:
             if url in self.relays:
                 relay = self.relays.pop(url)
+                relay.close()
+
+    def remove_all_relays(self):
+        with self.lock:
+            for relay in list(self.relays.items()):
+                relay = self.relays.pop(relay[0])
                 relay.close()
 
     def add_subscription_on_relay(self, url: str, id: str, filters: Filters):

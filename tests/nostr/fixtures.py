@@ -1,6 +1,6 @@
-import pytest
+from typing import Literal
 
-from models.nostr.message_type import RelayMessageType
+import pytest
 
 
 @pytest.fixture(scope='class')
@@ -55,10 +55,25 @@ def expected_event_obj_3():
 
 
 @pytest.fixture(scope='class')
-def reliable_relay_url():
+def reliable_relay_url() -> Literal['wss://relay.damus.io']:
     return 'wss://relay.damus.io'
 
 
 @pytest.fixture(scope='class')
-def reliable_relay_policy():
+def reliable_relay_policy() -> dict[str, bool]:
     return {'read': True, 'write': True}
+
+
+@pytest.fixture(scope='class')
+def relay_seed_urls() -> list[str]:
+    return ['wss://relay.damus.io', 'wss://relay.nostr.net']
+
+
+@pytest.fixture(scope='class')
+def expected_min_num_relays_10() -> int:
+    return 10
+
+
+@pytest.fixture(scope='class')
+def relay_seed_urls() -> list[str]:
+    return ['wss://relay.damus.io', 'wss://relay.nostr.net']

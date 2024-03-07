@@ -36,7 +36,6 @@ time.sleep(1.25)  # allow the connections to open
 # relay_manager.p(message)
 # time.sleep(1) # allow the messages to send
 
-
 if __name__ == '__main__':
     websocket.enableTrace(
         traceable=True, handler=log(10).StreamHandler(), level='DEBUG'

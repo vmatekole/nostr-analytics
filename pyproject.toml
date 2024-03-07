@@ -9,6 +9,7 @@ dependencies = [
     "python-dotenv>=1.0.1",
     "pysodium>=0.7.17",
     "websocket-client>=1.7.0",
+    "pytest-watch>=4.2.0",
 ]
 requires-python = ">=3.9"
 readme = "README.md"
@@ -26,3 +27,6 @@ skip-string-normalization = true
 pythonpath = [
   "./src"
 ]
+log_cli = true
+log_cli_level = "DEBUG"
+log_cli_format = "%(message)s"

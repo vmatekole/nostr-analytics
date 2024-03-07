@@ -36,10 +36,10 @@ class MessagePool:
     def add_message(self, message: str, url: str):
         self._process_message(message, url)
 
-    def get_event(self):
+    def get_event(self) -> EventMessage:
         return self.events.get()
 
-    def get_notice(self):
+    def get_notice(self) -> NoticeMessage:
         return self.notices.get()
 
     def get_eose_notice(self):
