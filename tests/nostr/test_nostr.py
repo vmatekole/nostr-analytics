@@ -4,7 +4,7 @@ from typing import Literal
 
 from analytics import Analytics
 from config import Configuration
-from models.nostr import relay_manager
+from models.kafka.schemas import EventTopic
 from models.nostr.event import Event, EventKind
 from models.nostr.filter import Filter, Filters
 from models.nostr.message_pool import EventMessage
@@ -79,9 +79,17 @@ class TestEvent:
 
 class TestConfig:
     def test_read_config(self):
-        config = Configuration.get_config_of_env_var()
+        config = Configuration.get_config_of_env_vars()
 
         assert (
             config.PUB_KEY
             == 'bf8752cc0899f447a1254b5fcbc7d18c676a665166b5541fa57b461888a9fdfe'
         )
+
+
+class TestEventTopic:
+    def test_get_kafka_type(self):
+
+        result = EventTopic.get_kafka_type(str)
+
+        assert result == 'string'
