@@ -3,6 +3,7 @@ from dataclasses import asdict
 from typing import Literal
 
 from analytics import Analytics
+from config import Configuration
 from models.nostr import relay_manager
 from models.nostr.event import Event, EventKind
 from models.nostr.filter import Filter, Filters
@@ -74,3 +75,13 @@ class TestEvent:
         relays = analytics.discover_relays(relay_seed_urls)
 
         assert len(relays) >= 1000
+
+
+class TestConfig:
+    def test_read_config(self):
+        config = Configuration.get_config_of_env_var()
+
+        assert (
+            config.PUB_KEY
+            == 'bf8752cc0899f447a1254b5fcbc7d18c676a665166b5541fa57b461888a9fdfe'
+        )
