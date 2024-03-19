@@ -1,3 +1,6 @@
+"""
+    The basis of the code below was taken from https://github.com/jeffthibault/python-nostr with some modifications.
+"""
 import json
 import time
 from ast import alias
@@ -30,7 +33,7 @@ class Event:
     )
     created_at: int = field(metadata={'seconds': 'unix timestamp in seconds'})
     kind: int = EventKind.TEXT_NOTE
-    sig: tuple[Any] = field(
+    sig: str = field(
         default=None,
         metadata={
             'event signature': (

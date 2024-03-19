@@ -4,6 +4,7 @@ from typing import Literal
 
 from analytics import Analytics
 from config import Configuration
+from models.kafka.producer import NostrProducer
 from models.kafka.schemas import EventTopic
 from models.nostr.event import Event, EventKind
 from models.nostr.filter import Filter, Filters
@@ -13,11 +14,13 @@ from models.nostr.relay_manager import RelayManager
 
 from .fixtures import (
     event_input_data_1,
+    event_input_data_2,
     event_input_data_3,
     expected_bytes_for_input_data_1,
     expected_event_obj_3,
     expected_min_num_relays_10,
     expected_sig_for_input_data_1,
+    kafka_event_topic,
     relay_seed_urls,
     reliable_relay_policy,
     reliable_relay_url,
@@ -89,7 +92,21 @@ class TestConfig:
 
 class TestEventTopic:
     def test_get_kafka_type(self):
-
-        result = EventTopic.get_kafka_type(str)
-
+        result: str = EventTopic.get_kafka_type(field_type=str)
         assert result == 'string'
+
+    def test_unknown_get_kafka_type(self):
+        result: str = EventTopic.get_kafka_type(field_type=list[list[str]])
+        assert result == 'unknown'
+
+    def test_kafka_event_schema(self, kafka_event_topic: str):
+        assert EventTopic.get_kafka_schema() == kafka_event_topic
+
+
+class TestKafkaProducer:
+    def test_producer_1(self, event_input_data_2):
+        nostr_producer: NostrProducer = NostrProducer()
+        event: Event = Event(**event_input_data_2)
+        topic: EventTopic = EventTopic(event)
+
+        nostr_producer.produce(topic.name, 'key', topic)

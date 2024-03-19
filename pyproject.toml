@@ -2,14 +2,13 @@
 name = ""
 version = ""
 description = ""
-authors = [
-    {name = "Victor Matekole", email = "github@matekole.com"},
-]
+authors = [{name = "Victor Matekole", email = "github@matekole.com"},]
 dependencies = [
     "python-dotenv>=1.0.1",
     "pysodium>=0.7.17",
     "websocket-client>=1.7.0",
     "pytest-watch>=4.2.0",
+    "confluent-kafka>=2.3.0",
 ]
 requires-python = ">=3.9"
 readme = "README.md"
@@ -19,14 +18,14 @@ license = {text = "MIT"}
 dev = [
     "pytest>=8.0.2",
     "rich>=13.7.1",
+    "requests>=2.31.0",
+    "fastavro>=1.9.4",
 ]
 [tool.black]
 skip-string-normalization = true
 
 [tool.pytest.ini_options]
-pythonpath = [
-  "./src"
-]
+pythonpath = ["./src"]
 log_cli = true
 log_cli_level = "DEBUG"
 log_cli_format = "%(message)s"

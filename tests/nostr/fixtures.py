@@ -77,3 +77,8 @@ def expected_min_num_relays_10() -> int:
 @pytest.fixture(scope='class')
 def relay_seed_urls() -> list[str]:
     return ['wss://relay.damus.io', 'wss://relay.nostr.net']
+
+
+@pytest.fixture(scope='class')
+def kafka_event_topic() -> str:
+    return '{"type": "record", "name": "Event", "namespace": "com.upstash", "fields": [{"name": "content", "type": "string"}, {"name": "pubkey", "type": "string"}, {"name": "created_at", "type": "long"}, {"name": "kind", "type": "long"}, {"name": "sig", "type": "string"}, {"name": "tags", "type": "array", "items": {"type": "array", "items": {"type": "map", "values": "string"}}}]}'

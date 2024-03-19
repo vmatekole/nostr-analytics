@@ -7,7 +7,7 @@ from rich.logging import RichHandler
 
 
 def init() -> Logger:
-    load_dotenv()
+    load_dotenv()  # TODO: Remove
     level = os.environ.get('LOG_LEVEL', logging.DEBUG)
     level = getattr(logging, level, logging.DEBUG) if isinstance(level, str) else level
     logFormatter = logging.Formatter(

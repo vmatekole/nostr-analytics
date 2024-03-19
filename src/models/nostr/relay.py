@@ -37,6 +37,7 @@ class Relay:
     policy: RelayPolicy = RelayPolicy()
     ssl_options: Optional[dict] = None
     proxy_config: RelayProxyConnectionConfig = None
+    # log_to_kafka: bool
 
     def __post_init__(self):
         self.queue = Queue()

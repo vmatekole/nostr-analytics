@@ -23,7 +23,7 @@ class Configuration:
         return state
 
     @staticmethod
-    def get_config_of_env_var() -> 'Configuration':
+    def get_config_of_env_vars() -> 'Configuration':
         env_args = {k: v for k, v in os.environ.items()}
         config: Configuration = Configuration(**env_args)
         return config
