@@ -100,13 +100,12 @@ class TestEventTopic:
         assert result == 'unknown'
 
     def test_kafka_event_schema(self, kafka_event_topic: str):
-        assert EventTopic.get_kafka_schema() == kafka_event_topic
+        assert EventTopic.avro_schema() == kafka_event_topic
 
 
 class TestKafkaProducer:
-    def test_producer_1(self, event_input_data_2):
+    def test_producer_1(self, event_input_data_1):
         nostr_producer: NostrProducer = NostrProducer()
-        event: Event = Event(**event_input_data_2)
-        topic: EventTopic = EventTopic(event)
+        topic: EventTopic = EventTopic(**event_input_data_1)
 
-        nostr_producer.produce(topic.name, 'key', topic)
+        nostr_producer.produce(topic='nostr', key='7', value=topic)

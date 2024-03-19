@@ -6,8 +6,9 @@ import pytest
 @pytest.fixture(scope='class')
 def event_input_data_1():
     return {
+        'sig': '24a3a244b546f59f09a2c2ca3278e709f5cf52f015102750b4ff75985b36beb8c52986d2274e60511e5d231cbfcd9e27493fef9e0a1cb22411d57d37ab2c8c48',
         'content': 'Sample content 1',
-        'pubkey': ('bf8752cc0899f447a1254b5fcbc7d18c676a665166b5541fa57b461888a9fdfe'),
+        'pubkey': 'bf8752cc0899f447a1254b5fcbc7d18c676a665166b5541fa57b461888a9fdfe',
         'created_at': 1709145567,
         'kind': 1,
         'tags': [['tag4', 'tag5'], ['tag6']],
@@ -26,7 +27,7 @@ def expected_bytes_for_input_data_1():
 def event_input_data_2():
     return {
         'content': 'Sample content 2',
-        'pubkey': ('bf8752cc0899f447a1254b5fcbc7d18c676a665166b5541fa57b461888a9fdfe'),
+        'pubkey': 'bf8752cc0899f447a1254b5fcbc7d18c676a665166b5541fa57b461888a9fdfe',
         'created_at': 1709145700,
         'kind': 1,
     }
@@ -75,10 +76,5 @@ def expected_min_num_relays_10() -> int:
 
 
 @pytest.fixture(scope='class')
-def relay_seed_urls() -> list[str]:
-    return ['wss://relay.damus.io', 'wss://relay.nostr.net']
-
-
-@pytest.fixture(scope='class')
 def kafka_event_topic() -> str:
-    return '{"type": "record", "name": "Event", "namespace": "com.upstash", "fields": [{"name": "content", "type": "string"}, {"name": "pubkey", "type": "string"}, {"name": "created_at", "type": "long"}, {"name": "kind", "type": "long"}, {"name": "sig", "type": "string"}, {"name": "tags", "type": "array", "items": {"type": "array", "items": {"type": "map", "values": "string"}}}]}'
+    return '{"type": "record", "name": "EventTopic", "fields": [{"name": "content", "type": "string"}, {"name": "pubkey", "type": "string"}, {"name": "created_at", "type": "long"}, {"name": "kind", "type": "long"}, {"name": "sig", "type": "string"}, {"name": "tags", "type": {"type": "array", "items": {"type": "array", "items": "string", "name": "tag"}, "name": "tag"}}]}'

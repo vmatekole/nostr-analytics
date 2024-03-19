@@ -1,7 +1,13 @@
+from dataclasses import asdict
+
 from confluent_kafka import Producer  # type: ignore
 from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.avro import AvroSerializer
-from confluent_kafka.serialization import SerializationContext, StringSerializer
+from confluent_kafka.serialization import (
+    MessageField,
+    SerializationContext,
+    StringSerializer,
+)
 
 from config import Configuration
 
@@ -21,7 +27,7 @@ class NostrProducer:
 
         self._avro_serializer = AvroSerializer(
             schema_registry_client=self._schema_registry_client,
-            schema_str=EventTopic.get_kafka_schema(),
+            schema_str=EventTopic.avro_schema(),
         )
 
         self._string_serializer = StringSerializer('utf_8')
@@ -37,11 +43,9 @@ class NostrProducer:
         )
 
     def produce(self, topic: str, key: str, value: EventTopic):
-        self._producer.produce(
-            topic=topic,
-            key=self._string_serializer(key),
-            value=self._avro_serializer(
-                value, SerializationContext(topic=topic, field=MessageField.VALUE)
-            ),
+        mesg = self._avro_serializer(
+            asdict(value), SerializationContext(topic=topic, field=MessageField.VALUE)
         )
+        key = self._string_serializer('nostr-event')
+        self._producer.produce(topic=topic, key=key, value=mesg)
         self._producer.flush()
