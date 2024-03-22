@@ -7,7 +7,7 @@ import pytest
 def event_input_data_1():
     return {
         'sig': '24a3a244b546f59f09a2c2ca3278e709f5cf52f015102750b4ff75985b36beb8c52986d2274e60511e5d231cbfcd9e27493fef9e0a1cb22411d57d37ab2c8c48',
-        'content': 'Sample content 1',
+        'content': 'Sample content 7',
         'pubkey': 'bf8752cc0899f447a1254b5fcbc7d18c676a665166b5541fa57b461888a9fdfe',
         'created_at': 1709145567,
         'kind': 1,

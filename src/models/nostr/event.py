@@ -4,10 +4,13 @@
 import json
 import time
 from ast import alias
-from dataclasses import asdict, dataclass, field
 from enum import IntEnum
 from hashlib import sha256
 from typing import Any, List
+
+from pydantic import BaseModel, Field, model_serializer
+from pydantic.dataclasses import dataclass
+from typing_extensions import Annotated
 
 from .message_type import ClientMessageType
 
@@ -22,40 +25,30 @@ class EventKind(IntEnum):
 
 
 @dataclass
-class Event:
-    content: str = field(metadata={'text': 'nostr txt content'})
-    pubkey: str = field(
-        metadata={
-            'public key': (
-                '32-bytes lowercase hex-encoded public key of the event creator'
-            )
-        }
+class Event(BaseModel):
+    content: str = Field(description='"text": "nostr txt content"')
+    pubkey: str = Field(
+        description='"public key": "32-bytes lowercase hex-encoded public key of the event creator"'
     )
-    created_at: int = field(metadata={'seconds': 'unix timestamp in seconds'})
+    created_at: int = Field(
+        default=int(time.time()), description='"seconds": "unix timestamp in seconds"'
+    )
     kind: int = EventKind.TEXT_NOTE
-    sig: str = field(
+    sig: str = Field(
         default=None,
-        metadata={
-            'event signature': (
-                '64-bytes lowercase hex of the signature of the sha256 hash of the'
-                ' serialized event data, which is the same as the "id" field'
-            )
-        },
+        description='"event signature": "64-bytes lowercase hex of the signature of the sha256 hash of the serialized event data, which is the same as the \"id\" field"',
     )
-    tags: List[List[str]] = field(
-        default_factory=list, metadata={'content tag': 'arbitrary string'}
+    tags: List[List[str]] = Field(
+        default_factory=list, description='"content tag": "arbitrary string"'
     )
 
-    """Initialises 'content' and 'created_at' fields post initialisation
-    """
+    # """Initialises 'content' and 'created_at' fields post initialisation
+    # """
 
-    def __post_init__(self) -> None:
-        if self.content is not None and not isinstance(self.content, str):
-            # DMs initialize content to None but all other kinds should pass in a str
-            raise TypeError("Argument 'content' must be of type str")
-
-        if self.created_at is None:
-            self.created_at = int(time.time())
+    # def __post_init__(self) -> None:
+    #     if self.content is not None and not isinstance(self.content, str):
+    #         # DMs initialize content to None but all other kinds should pass in a str
+    #         raise TypeError("Argument 'content' must be of type str")
 
     """Serialises Event obj to a byte string
 
@@ -63,11 +56,9 @@ class Event:
         bytes: Serialized Event obj
     """
 
-    @staticmethod
-    def serialize(
-        pubkey: str, created_at: int, kind: int, tags: List[List[str]], content: str
-    ) -> bytes:
-        data = [0, pubkey, created_at, kind, tags, content]
+    @model_serializer
+    def serialize(self) -> bytes:
+        data = [0, self.pubkey, self.created_at, self.kind, self.tags, self.content]
         data_str: str = json.dumps(data, separators=(',', ':'), ensure_ascii=False)
         return data_str.encode()
 
@@ -84,13 +75,8 @@ class Event:
         str: sha256 hash of the serialised event
     """
 
-    @staticmethod
-    def compute_id(
-        pubkey: str, created_at: int, kind: int, tags: List[List[str]], content: str
-    ) -> str:
-        return sha256(
-            Event.serialize(pubkey, created_at, kind=kind, tags=tags, content=content)
-        ).hexdigest()
+    def compute_id(self) -> str:
+        return sha256(self.serialize(self)).hexdigest()
 
     """32-bytes lowercase hex-encoded sha256 of the serialized event data
 
@@ -101,9 +87,7 @@ class Event:
     @property
     def id(self) -> str:
         # Always recompute the id to reflect the up-to-date state of the Event
-        return Event.compute_id(
-            self.pubkey, self.created_at, self.kind, self.tags, self.content
-        )
+        return self.compute_id()
 
     @property
     def note_id(self) -> str:
@@ -144,5 +128,4 @@ class Event:
         )
 
     def to_bytes(self) -> bytes:
-        filtered_dict = {k: v for k, v in self.__dict__.items() if k != 'sig'}
-        return Event.serialize(*filtered_dict.values())
+        return self.serialize(self)

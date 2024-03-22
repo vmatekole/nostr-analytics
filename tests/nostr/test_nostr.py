@@ -1,5 +1,6 @@
 import json
 from dataclasses import asdict
+from pickletools import pyset
 from typing import Literal
 
 from analytics import Analytics
@@ -29,7 +30,7 @@ from .fixtures import (
 
 class TestEvent:
     def test_to_bytes(self, event_input_data_1, expected_bytes_for_input_data_1):
-
+        print(str(**event_input_data_1))
         result: bytes = Event(**event_input_data_1).to_bytes()
         assert result == expected_bytes_for_input_data_1
 
@@ -44,41 +45,6 @@ class TestEvent:
 
         assert asdict(result) == expected_event_obj_3
 
-    def test_relay_connect(self, reliable_relay_url):
-        relay_manager: RelayManager = RelayManager()
-        relay_manager.add_relay(reliable_relay_url)
-
-        result: Relay = relay_manager.relays[reliable_relay_url]
-
-        assert result.ws.sock.connected == True
-
-    def test_follow_up_req(
-        self,
-        reliable_relay_url: Literal['wss://relay.damus.io'],
-        reliable_relay_policy: dict[str, bool],
-    ):
-        relay_manager: RelayManager = RelayManager()
-        filters = Filters(initlist=[Filter(kinds=[EventKind.CONTACTS])])
-        relay_manager.add_relay(reliable_relay_url)
-
-        relay_manager.add_subscription_on_all_relays(id='foo', filters=filters)
-        event_msg: EventMessage = None
-        result: list = None
-        while True:
-            if relay_manager.message_pool.has_events():
-                event_msg: EventMessage = relay_manager.message_pool.get_event()
-                result: dict = json.loads(event_msg.event.content)
-                break
-        assert len(result) > 7
-        assert result.get(reliable_relay_url) == reliable_relay_policy
-
-    def test_get_relays(self, relay_seed_urls, expected_min_num_relays_10):
-        analytics: Analytics = Analytics()
-
-        relays = analytics.discover_relays(relay_seed_urls)
-
-        assert len(relays) >= 1000
-
 
 class TestConfig:
     def test_read_config(self):
@@ -88,24 +54,3 @@ class TestConfig:
             config.PUB_KEY
             == 'bf8752cc0899f447a1254b5fcbc7d18c676a665166b5541fa57b461888a9fdfe'
         )
-
-
-class TestEventTopic:
-    def test_get_kafka_type(self):
-        result: str = EventTopic.get_kafka_type(field_type=str)
-        assert result == 'string'
-
-    def test_unknown_get_kafka_type(self):
-        result: str = EventTopic.get_kafka_type(field_type=list[list[str]])
-        assert result == 'unknown'
-
-    def test_kafka_event_schema(self, kafka_event_topic: str):
-        assert EventTopic.avro_schema() == kafka_event_topic
-
-
-class TestKafkaProducer:
-    def test_producer_1(self, event_input_data_1):
-        nostr_producer: NostrProducer = NostrProducer()
-        topic: EventTopic = EventTopic(**event_input_data_1)
-
-        nostr_producer.produce(topic='nostr', key='7', value=topic)

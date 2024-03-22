@@ -22,6 +22,7 @@ dev = [
     "rich>=13.7.1",
     "requests>=2.31.0",
     "fastavro>=1.9.4",
+    "pytest-mock>=3.14.0",
 ]
 [tool.black]
 skip-string-normalization = true

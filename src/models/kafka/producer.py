@@ -1,6 +1,6 @@
 from dataclasses import asdict
 
-from confluent_kafka import Producer  # type: ignore
+from confluent_kafka import Producer
 from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.avro import AvroSerializer
 from confluent_kafka.serialization import (
@@ -42,10 +42,26 @@ class NostrProducer:
             }
         )
 
-    def produce(self, topic: str, key: str, value: EventTopic):
+    def serialise_key_topic(self, topic_name: str, key: str, event_topic: EventTopic):
+        key = self._string_serializer(key)
         mesg = self._avro_serializer(
-            asdict(value), SerializationContext(topic=topic, field=MessageField.VALUE)
+            asdict(event_topic),
+            SerializationContext(topic=topic_name, field=MessageField.VALUE),
         )
-        key = self._string_serializer('nostr-event')
-        self._producer.produce(topic=topic, key=key, value=mesg)
+        return key, mesg
+
+    def _delivery_report(self, err, msg):
+        if err is not None:
+            print('Message delivery failed: {}'.format(err))
+        else:
+            print('Message delivered to {} [{}]'.format(msg.topic(), msg.partition()))
+
+    def produce(self, topic_name: str, key: str, event_topic: EventTopic):
+        key, ser_event_topic = self.serialise_key_topic(topic_name, key, event_topic)
+        self._producer.produce(
+            topic=topic_name,
+            key=key,
+            value=ser_event_topic,
+            on_delivery=self._delivery_report,
+        )
         self._producer.flush()
