@@ -1,10 +1,10 @@
 import time
-from venv import logger
 
 from models.kafka.consumer import NostrConsumer
 from models.kafka.producer import NostrProducer
 from models.kafka.schemas import EventTopic
 from models.nostr.event import Event
+from utils import logger
 
 from ..nostr.fixtures import event_input_data_1, event_input_data_2
 from .fixtures import kafka_event_topic
