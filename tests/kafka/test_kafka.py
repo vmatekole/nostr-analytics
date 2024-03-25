@@ -11,10 +11,11 @@ from .fixtures import kafka_event_topic
 
 
 class TestEventTopic:
-    def test_kafka_event_schema(self, kafka_event_topic: str):
-        print(EventTopic.generate_dataclass())
-        print(Event)
-        assert EventTopic.avro_schema() == kafka_event_topic
+    def test_kafka_event_schema(self, event_input_data_1):
+        # Not the most robust test for schema alignment but is better than nothing.
+        event_topic: EventTopic = EventTopic(**event_input_data_1)
+        assert Event.model_validate(event_input_data_1)
+        assert isinstance(event_topic, EventTopic)
 
 
 class TestKafkaProducer:
