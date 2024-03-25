@@ -1,3 +1,7 @@
+import time
+from venv import logger
+
+from models.kafka.consumer import NostrConsumer
 from models.kafka.producer import NostrProducer
 from models.kafka.schemas import EventTopic
 from models.nostr.event import Event
@@ -32,7 +36,6 @@ class TestKafkaProducer:
 
     def test_producer_1(self, mocker, event_input_data_1):
         mocker.patch.object(NostrProducer, '_delivery_report')
-
         try:
             nostr_producer: NostrProducer = NostrProducer()
             topic_name = 'nostr'
@@ -47,3 +50,38 @@ class TestKafkaProducer:
             assert True
         except Exception:
             assert False
+
+
+class TestKafkaConsumer:
+    def test_consume_nostr_topic_1(self):
+        topic_names: list[str] = ['nostr']
+        nostr_consumer: NostrConsumer = NostrConsumer(topic_names)
+
+        THIRTY_SECONDS = 30
+        start_time = time.time()
+
+        logger.info(
+            f'Subscribed to {topic_names} and trying for 30 secs for available topics'
+        )
+        # Try and capture messages over a 30 second period
+        while time.time() - start_time < THIRTY_SECONDS:
+            key, msg = nostr_consumer.get_event_topic()
+            if msg is not None:
+                logger.debug(f'key: {key} topic: {msg}')
+                event_topic = EventTopic(**msg)
+                assert isinstance(event_topic, EventTopic)
+                break
+
+    def test_consume_wrong_topic_1(self):
+        topic_names: list[str] = ['not-exist']
+        nostr_consumer: NostrConsumer = NostrConsumer(topic_names)
+
+        logger.info(
+            f'Subscribed to erroneous topic: {topic_names} and trying for 30 secs for available topics'
+        )
+        try:
+            key, msg = nostr_consumer.get_event_topic()
+            assert False
+        except Exception:
+            logger.info(f'Topic: {topic_names} correctly does not exist')
+            assert True

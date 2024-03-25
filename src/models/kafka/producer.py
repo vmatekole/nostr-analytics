@@ -9,22 +9,14 @@ from confluent_kafka.serialization import (
     StringSerializer,
 )
 
-from config import Configuration
+from models.kafka.base import KafkaBase
 
 from .schemas import EventTopic
 
 
-class NostrProducer:
+class NostrProducer(KafkaBase):
     def __init__(self) -> None:
-        self._config: Configuration = Configuration.get_config_of_env_vars()
-
-        self._schema_registry_client = SchemaRegistryClient(
-            conf={
-                'url': self._config.KAFKA_SCHEMA_URL,
-                'basic.auth.user.info': self._config.KAFKA_SCHEMA_AUTH_TOKEN,
-            }
-        )
-
+        super().__init__()
         self._avro_serializer = AvroSerializer(
             schema_registry_client=self._schema_registry_client,
             schema_str=EventTopic.avro_schema(),

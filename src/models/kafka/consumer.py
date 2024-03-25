@@ -1,39 +1,58 @@
-from confluent_kafka import Consumer, avro
+from dataclasses import asdict
+from typing import Union
+
+from confluent_kafka import Consumer
 from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.avro import AvroDeserializer
-from confluent_kafka.serialization import MessageField, SerializationContext
-
-avro_deserializer = AvroDeserializer(
-    SchemaRegistryClient(
-        {
-            'url': 'https://selected-alien-14337-eu2-rest-kafka.upstash.io/schema-registry',
-            'basic.auth.user.info': 'c2VsZWN0ZWQtYWxpZW4tMTQzMzck8Hz7yBAMVN1ItkXS96W1R5A4ImWolGoXFW8:ZGE2MjZkMTItOWExYi00Y2ViLTk4YzAtMzc2YzRkYmJjODFm',
-        }
-    )
+from confluent_kafka.serialization import (
+    MessageField,
+    SerializationContext,
+    StringDeserializer,
 )
 
-consumer = Consumer(
-    {
-        'bootstrap.servers': 'selected-alien-14337-eu2-kafka.upstash.io:9092',
-        'sasl.mechanism': 'SCRAM-SHA-256',
-        'security.protocol': 'SASL_SSL',
-        'sasl.username': 'c2VsZWN0ZWQtYWxpZW4tMTQzMzck8Hz7yBAMVN1ItkXS96W1R5A4ImWolGoXFW8',
-        'sasl.password': 'ZGE2MjZkMTItOWExYi00Y2ViLTk4YzAtMzc2YzRkYmJjODFm',
-        'group.id': 'YOUR_CONSUMER_GROUP',
-        'auto.offset.reset': 'earliest',
-    }
-)
-consumer.subscribe(['YOUR_TOPIC'])
+from config import Configuration
+from models.kafka.base import KafkaBase
 
-while True:
-    msg = consumer.poll(1.0)
-    if msg is None:
-        continue
+from .schemas import EventTopic
 
-    deserialized = avro_deserializer(
-        msg.value(), SerializationContext(msg.topic(), MessageField.VALUE)
-    )
-    if deserialized is not None:
-        print('Key {}: Value{} \n'.format(msg.key(), deserialized))
 
-consumer.close()
+class NostrConsumer(KafkaBase):
+    def __init__(self, topic_names: list[str]) -> None:
+        super().__init__()
+        self._avro_deserializer = AvroDeserializer(
+            schema_registry_client=self._schema_registry_client,
+        )
+
+        self._string_serializer = StringDeserializer('utf_8')
+
+        self._consumer = Consumer(  # type: ignore
+            {
+                'bootstrap.servers': self._config.KAFKA_URL,
+                'sasl.mechanism': 'SCRAM-SHA-256',
+                'security.protocol': 'SASL_SSL',
+                'sasl.username': self._config.KAFKA_USER,
+                'sasl.password': self._config.KAFKA_PASS,
+                'group.id': self._config.KAFKA_CONSUMER_GROUP,
+                'auto.offset.reset': 'earliest',
+            }
+        )
+        self._consumer.subscribe(topic_names)
+
+    def get_event_topic(self):  # -> tuple[Any, EventTopic]:
+        msg = self._consumer.poll(1.0)
+
+        if msg is not None:
+            topic = self._avro_deserializer(
+                msg.value(), SerializationContext(msg.topic(), MessageField.VALUE)
+            )
+            if msg:
+                print(f'Key {msg.key()}: Value{topic} \n')
+                return msg.key(), topic
+        else:
+            return None, None
+
+    def close(self) -> None:
+        self._consumer.close()
+
+    # def __del__(self) -> None:
+    #     self._consumer.close()
