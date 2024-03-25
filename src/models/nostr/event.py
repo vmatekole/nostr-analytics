@@ -6,11 +6,13 @@ import time
 from ast import alias
 from enum import IntEnum
 from hashlib import sha256
-from typing import Any, List
+from typing import Any, List, Optional
 
-from pydantic import BaseModel, Field, model_serializer
+from pydantic import Field, model_serializer
 from pydantic.dataclasses import dataclass
 from typing_extensions import Annotated
+
+from models.base import BaseBQModel
 
 from .message_type import ClientMessageType
 
@@ -24,8 +26,7 @@ class EventKind(IntEnum):
     DELETE = 5
 
 
-@dataclass
-class Event(BaseModel):
+class Event(BaseBQModel):
     content: str = Field(description='"text": "nostr txt content"')
     pubkey: str = Field(
         description='"public key": "32-bytes lowercase hex-encoded public key of the event creator"'
@@ -33,31 +34,32 @@ class Event(BaseModel):
     created_at: int = Field(
         default=int(time.time()), description='"seconds": "unix timestamp in seconds"'
     )
-    kind: int = EventKind.TEXT_NOTE
+    kind: int = Field(
+        default=EventKind.TEXT_NOTE,
+        description='nostr event kinds see https://nostrdata.github.io/kinds/',
+    )
     sig: str = Field(
         default=None,
         description='"event signature": "64-bytes lowercase hex of the signature of the sha256 hash of the serialized event data, which is the same as the \"id\" field"',
     )
-    tags: List[List[str]] = Field(
+    tags: Optional[List[List[str]]] = Field(
         default_factory=list, description='"content tag": "arbitrary string"'
     )
 
-    # """Initialises 'content' and 'created_at' fields post initialisation
-    # """
+    """Initialises 'content' and 'created_at' fields post initialisation
+    """
 
-    # def __post_init__(self) -> None:
-    #     if self.content is not None and not isinstance(self.content, str):
-    #         # DMs initialize content to None but all other kinds should pass in a str
-    #         raise TypeError("Argument 'content' must be of type str")
+    def __post_init__(self) -> None:
+        if self.content is not None and not isinstance(self.content, str):
+            # DMs initialize content to None but all other kinds should pass in a str
+            raise TypeError("Argument 'content' must be of type str")
 
-    """Serialises Event obj to a byte string
-
+    """Serialises Event obj to a json string in byte from
     Returns:
         bytes: Serialized Event obj
     """
 
-    @model_serializer
-    def serialize(self) -> bytes:
+    def to_json_bytes_str(self) -> bytes:
         data = [0, self.pubkey, self.created_at, self.kind, self.tags, self.content]
         data_str: str = json.dumps(data, separators=(',', ':'), ensure_ascii=False)
         return data_str.encode()
@@ -76,7 +78,7 @@ class Event(BaseModel):
     """
 
     def compute_id(self) -> str:
-        return sha256(self.serialize(self)).hexdigest()
+        return sha256(self.to_json_bytes_str()).hexdigest()
 
     """32-bytes lowercase hex-encoded sha256 of the serialized event data
 
@@ -126,6 +128,3 @@ class Event(BaseModel):
                 },
             ]
         )
-
-    def to_bytes(self) -> bytes:
-        return self.serialize(self)

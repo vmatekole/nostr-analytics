@@ -11,6 +11,8 @@ dependencies = [
     "confluent-kafka>=2.3.0",
     "pydantic>=2.6.4",
     "dataclasses-avroschema>=0.57.4",
+    "google-cloud-bigquery>=3.19.0",
+    "prefect>=2.14.13",
 ]
 requires-python = ">=3.9"
 readme = "README.md"

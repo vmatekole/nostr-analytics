@@ -17,10 +17,7 @@ def event_input_data_1():
 
 @pytest.fixture(scope='class')
 def expected_bytes_for_input_data_1():
-    return (
-        b'[0,"Sample content'
-        b' 1","bf8752cc0899f447a1254b5fcbc7d18c676a665166b5541fa57b461888a9fdfe",1709145567,1,[["tag4","tag5"],["tag6"]]]'
-    )
+    return b'[0,"bf8752cc0899f447a1254b5fcbc7d18c676a665166b5541fa57b461888a9fdfe",1709145567,1,[["tag4","tag5"],["tag6"]],"Sample content 7"]'
 
 
 @pytest.fixture(scope='class')
@@ -40,7 +37,7 @@ def event_input_data_3():
 
 @pytest.fixture(scope='class')
 def expected_sig_for_input_data_1():
-    return '583123f70e2e0e650e87dc34e01530179907997a3e159c8169a80917ac2cabf0'
+    return 'ea84b401f5c32a0a8933715eda96e02f97e9c031c000beaf10dcf4abd6a86142'
 
 
 @pytest.fixture(scope='class')

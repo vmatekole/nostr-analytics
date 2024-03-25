@@ -12,6 +12,7 @@ from models.nostr.filter import Filter, Filters
 from models.nostr.message_pool import EventMessage
 from models.nostr.relay import Relay
 from models.nostr.relay_manager import RelayManager
+from utils import logger
 
 from .fixtures import (
     event_input_data_1,
@@ -29,9 +30,10 @@ from .fixtures import (
 
 
 class TestEvent:
-    def test_to_bytes(self, event_input_data_1, expected_bytes_for_input_data_1):
-        print(str(**event_input_data_1))
-        result: bytes = Event(**event_input_data_1).to_bytes()
+    def test_to_json_bytes_str(
+        self, event_input_data_1, expected_bytes_for_input_data_1
+    ):
+        result: bytes = Event(**event_input_data_1).to_json_bytes_str()
         assert result == expected_bytes_for_input_data_1
 
     def test_compute_id(self, event_input_data_1, expected_sig_for_input_data_1):  # type: ignore
@@ -40,10 +42,8 @@ class TestEvent:
 
     def test_parsing_event(self, event_input_data_3, expected_event_obj_3):
         json_array = json.loads(event_input_data_3)
-
         result: Event = Event.parse_event(json_array[2])
-
-        assert asdict(result) == expected_event_obj_3
+        assert result.model_dump() == expected_event_obj_3
 
 
 class TestConfig:

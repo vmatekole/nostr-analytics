@@ -11,7 +11,7 @@ from confluent_kafka.serialization import (
 )
 
 from config import Configuration
-from models.kafka.base import KafkaBase
+from models.base import KafkaBase
 
 from .schemas import EventTopic
 
