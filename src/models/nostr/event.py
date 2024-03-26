@@ -8,6 +8,7 @@ from hashlib import sha256
 from typing import List, Optional
 
 from pydantic import Field
+from pydantic.fields import FieldInfo
 
 from models.base import BaseBQModel
 
@@ -24,7 +25,7 @@ class EventKind(IntEnum):
 
 
 class Event(BaseBQModel):
-    content: str = Field(description='"text": "nostr txt content"')
+    content: Optional[str] = Field(description='"text": "nostr txt content"')
     pubkey: str = Field(
         description='"public key": "32-bytes lowercase hex-encoded public key of the event creator"'
     )
@@ -43,13 +44,14 @@ class Event(BaseBQModel):
         default_factory=list, description='"content tag": "arbitrary string"'
     )
 
-    """Initialises 'content' and 'created_at' fields post initialisation
-    """
-
-    def __post_init__(self) -> None:
-        if self.content is not None and not isinstance(self.content, str):
-            # DMs initialize content to None but all other kinds should pass in a str
-            raise TypeError("Argument 'content' must be of type str")
+    @staticmethod
+    def _get_field_mode(name: str, field: FieldInfo):
+        if name == 'tags':  # TODO: Hacky! Special case.
+            return 'REPEATED'
+        elif not name in ['sig', 'content'] and field.default is not None:
+            return 'NOT NULL'
+        else:
+            return 'NULLABLE'
 
     """Serialises Event obj to a json string in byte from
     Returns:
