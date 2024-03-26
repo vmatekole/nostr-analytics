@@ -2,7 +2,7 @@ import json
 from typing import Literal
 
 from analytics import Analytics
-from config import Configuration
+from config import Settings
 from models.kafka.producer import NostrProducer
 from models.kafka.schemas import EventTopic
 from models.nostr.event import Event, EventKind
@@ -46,9 +46,9 @@ class TestEvent:
 
 class TestConfig:
     def test_read_config(self):
-        config = Configuration.get_config_of_env_vars()
+        config = Settings()
 
         assert (
-            config.PUB_KEY
+            config.pub_key
             == 'bf8752cc0899f447a1254b5fcbc7d18c676a665166b5541fa57b461888a9fdfe'
         )

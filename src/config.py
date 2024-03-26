@@ -1,29 +1,15 @@
-import os
-from typing import Union
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-class Configuration:
-    def __init__(self, **kwargs: dict[str, Union[str, int]]):
-        self._readonly = False
-
-        for k, v in kwargs.items():
-            setattr(self, k, v)
-        self._readonly = True
-
-    def __setattr__(self, __name: str, __v) -> None:
-        if getattr(self, '_readonly', False):
-            raise AttributeError('LLM configuration readonly')
-        super().__setattr__(__name, __v)
-
-    def __repr__(self) -> str:
-        state = ''
-        for k, v in self.__dict__.items():
-            if k != '_readonly':
-                state += f'{k}: {v} '
-        return state
-
-    @staticmethod
-    def get_config_of_env_vars() -> 'Configuration':
-        env_args = {k: v for k, v in os.environ.items()}
-        config: Configuration = Configuration(**env_args)
-        return config
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8')
+    priv_key: str
+    pub_key: str
+    kafka_url: str
+    kafka_user: str
+    kafka_pass: str
+    kafka_schema_url: str
+    kafka_schema_auth_token: str
+    kafka_consumer_group: str
+    test_event_bq_table_id: str
+    test_event_bq_dataset_id: str

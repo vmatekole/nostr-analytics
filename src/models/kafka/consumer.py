@@ -10,7 +10,7 @@ from confluent_kafka.serialization import (
     StringDeserializer,
 )
 
-from config import Configuration
+from config import Settings
 from models.base import KafkaBase
 
 from .schemas import EventTopic
@@ -27,12 +27,12 @@ class NostrConsumer(KafkaBase):
 
         self._consumer = Consumer(  # type: ignore
             {
-                'bootstrap.servers': self._config.KAFKA_URL,
+                'bootstrap.servers': self._config.kafka_url,
                 'sasl.mechanism': 'SCRAM-SHA-256',
                 'security.protocol': 'SASL_SSL',
-                'sasl.username': self._config.KAFKA_USER,
-                'sasl.password': self._config.KAFKA_PASS,
-                'group.id': self._config.KAFKA_CONSUMER_GROUP,
+                'sasl.username': self._config.kafka_user,
+                'sasl.password': self._config.kafka_pass,
+                'group.id': self._config.kafka_consumer_group,
                 'auto.offset.reset': 'earliest',
             }
         )

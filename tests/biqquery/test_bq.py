@@ -1,4 +1,4 @@
-from config import Configuration
+from config import Settings
 from models.nostr.event import Event
 from utils import logger
 
@@ -7,7 +7,7 @@ from .fixtures import event_bq_schema
 
 class TestBiqQuery:
     def test_event_insert(self, event_bq_insert_data_1):
-        config = Configuration.get_config_of_env_vars()
+        config = Settings()
         assert Event.model_validate(event_bq_insert_data_1)
         event: Event = Event(**event_bq_insert_data_1)
 

@@ -26,11 +26,11 @@ class NostrProducer(KafkaBase):
 
         self._producer = Producer(  # type: ignore
             {
-                'bootstrap.servers': self._config.KAFKA_URL,
+                'bootstrap.servers': self._config.kafka_url,
                 'sasl.mechanism': 'SCRAM-SHA-256',
                 'security.protocol': 'SASL_SSL',
-                'sasl.username': self._config.KAFKA_USER,
-                'sasl.password': self._config.KAFKA_PASS,
+                'sasl.username': self._config.kafka_user,
+                'sasl.password': self._config.kafka_pass,
             }
         )
 
