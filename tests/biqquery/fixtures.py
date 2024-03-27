@@ -31,21 +31,25 @@ def event_bq_insert_data_2():
     }
 
 
+# TODO: Need to review if validating expected bq schema against Pydantic object is reasonable in this way.
 @pytest.fixture(scope='class')
 def event_bq_schema():
     return [
-        bigquery.SchemaField('content', 'STRING', 'NULLABLE', None, None, (), None),
-        bigquery.SchemaField('pubkey', 'STRING', 'NOT NULL', None, None, (), None),
-        bigquery.SchemaField('created_at', 'INT64', 'NOT NULL', None, None, (), None),
-        bigquery.SchemaField('kind', 'INT64', 'NOT NULL', None, None, (), None),
-        bigquery.SchemaField('sig', 'STRING', 'NULLABLE', None, None, (), None),
+        bigquery.SchemaField('content', 'STRING', 'REQUIRED', None, ()),
+        bigquery.SchemaField('pubkey', 'STRING', 'REQUIRED', None, ()),
+        bigquery.SchemaField('created_at', 'INTEGER', 'REQUIRED', None, ()),
+        bigquery.SchemaField('added_at', 'TIMESTAMP', 'REQUIRED', None, ()),
+        bigquery.SchemaField('kind', 'STRING', 'REQUIRED', None, ()),
+        bigquery.SchemaField('sig', 'STRING', 'NULLABLE', None, ()),
         bigquery.SchemaField(
             'tags',
             'RECORD',
             'REPEATED',
             None,
-            None,
-            (bigquery.SchemaField('tag', 'STRING', 'REPEATED', None, None, None),),
+            (
+                bigquery.SchemaField('tag_id', 'STRING', 'REQUIRED', None, ()),
+                bigquery.SchemaField('tag_values', 'STRING', 'REPEATED', None, ()),
+            ),
             None,
         ),
     ]

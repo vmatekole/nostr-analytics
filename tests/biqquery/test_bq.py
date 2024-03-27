@@ -1,4 +1,5 @@
 from config import Settings
+from models.bigquery.utils import BqUtils
 from models.nostr.event import Event
 from utils import logger
 
@@ -11,7 +12,7 @@ class TestBiqQuery:
         assert Event.model_validate(event_bq_insert_data_1)
         event: Event = Event(**event_bq_insert_data_1)
 
-        assert Event.persist_to_bigquery(
+        assert BqUtils.persist_to_bigquery(
             [event],
             config.gcp_project_id,
             config.test_event_bq_dataset_id,
@@ -23,7 +24,7 @@ class TestBiqQuery:
         assert Event.model_validate(event_bq_insert_data_2)
         event: Event = Event(**event_bq_insert_data_2)
 
-        assert Event.persist_to_bigquery(
+        assert BqUtils.persist_to_bigquery(
             [event],
             config.gcp_project_id,
             config.test_event_bq_dataset_id,
