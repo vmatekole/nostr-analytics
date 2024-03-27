@@ -11,5 +11,6 @@ class Settings(BaseSettings):
     kafka_schema_url: str
     kafka_schema_auth_token: str
     kafka_consumer_group: str
+    gcp_project_id: str
     test_event_bq_table_id: str
     test_event_bq_dataset_id: str

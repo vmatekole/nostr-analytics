@@ -10,7 +10,7 @@ from typing import List, Optional
 from pydantic import Field
 from pydantic.fields import FieldInfo
 
-from models.base import BaseBQModel
+from models.base import ModelBase
 
 from .message_type import ClientMessageType
 
@@ -24,7 +24,7 @@ class EventKind(IntEnum):
     DELETE = 5
 
 
-class Event(BaseBQModel):
+class Event(ModelBase):
     content: Optional[str] = Field(description='"text": "nostr txt content"')
     pubkey: str = Field(
         description='"public key": "32-bytes lowercase hex-encoded public key of the event creator"'
@@ -43,15 +43,6 @@ class Event(BaseBQModel):
     tags: Optional[List[List[str]]] = Field(
         default_factory=list, description='"content tag": "arbitrary string"'
     )
-
-    @staticmethod
-    def _get_field_mode(name: str, field: FieldInfo):
-        if name == 'tags':  # TODO: Hacky! Special case.
-            return 'REPEATED'
-        elif not name in ['sig', 'content'] and field.default is not None:
-            return 'NOT NULL'
-        else:
-            return 'NULLABLE'
 
     """Serialises Event obj to a json string in byte from
     Returns:
@@ -127,3 +118,21 @@ class Event(BaseBQModel):
                 },
             ]
         )
+
+    def bq_dump(self):
+        event: dict[str, Any] = self.model_dump()
+
+        bq_tag_repr = [
+            ({'tag_id': index, 'tag_values': tag_array})
+            for index, tag_array in enumerate(event['tags'])
+        ]
+        event['tags'] = bq_tag_repr
+        return event
+
+    @staticmethod
+    def _get_field_mode(name: str, field: FieldInfo):
+
+        if not name in ['sig', 'content'] and field.default is not None:
+            return 'NOT NULL'
+        else:
+            return 'NULLABLE'
