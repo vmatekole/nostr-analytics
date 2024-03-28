@@ -1,3 +1,4 @@
+################ PLEASE READ. THIS CODE IS ARCHIVED AND IS NO LONGER RELEVANT BUT GET FOR POSTERITY AND REFERENCE
 variable "credentials" {
   description = "Terraform Credentials"
   default     =  "/Users/PI/code/datatalks/noble-velocity-411717-59617a8fb872-terraform.json"

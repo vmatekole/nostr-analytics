@@ -1,3 +1,5 @@
+################ PLEASE READ. THIS CODE IS ARCHIVED AND IS NO LONGER RELEVANT BUT GET FOR POSTERITY AND REFERENCE
+
 variable "delete_protection" {
   default = false
 }
@@ -22,103 +24,89 @@ resource "google_bigquery_table" "ip_geolocation" {
 [
   {
     "name": "geoname_id",
-    "type": "STRING",
-    "mode": "REQUIRED"
+    "type": "STRING"
 
   },
   {
     "name": "locale_code",
-    "type": "STRING",
-    "mode": "REQUIRED"
+    "type": "STRING"
   },
   {
     "name": "continent_code",
-    "type": "STRING",
-    "mode": "REQUIRED"
+    "type": "STRING"
   },
   {
     "name": "continent_name",
-    "type": "STRING",
-    "mode": "REQUIRED"
+    "type": "STRING"
   },
   {
     "name": "country_iso_code",
-    "type": "STRING",
-    "mode": "REQUIRED"
+    "type": "STRING"
   },
   {
     "name": "country_name",
-    "type": "STRING",
-    "mode": "REQUIRED"
+    "type": "STRING"
   },
   {
     "name": "is_in_european_union",
-    "type": "STRING",
-    "mode": "REQUIRED"
+    "type": "STRING"
   },
   {
     "name": "network",
-    "type": "STRING",
-    "mode": "REQUIRED"
+    "type": "STRING"
   },
   {
     "name": "registered_country_geoname_id",
-    "type": "STRING",
-    "mode": "REQUIRED"
+    "type": "STRING"
   },
   {
     "name": "represented_country_geoname_id",
-    "type": "STRING",
-    "mode": "REQUIRED"
+    "type": "STRING"
   },
   {
     "name": "is_anonymous_proxy",
-    "type": "STRING",
-    "mode": "REQUIRED"
+    "type": "STRING"
   },
   {
     "name": "is_satellite_provider",
-    "type": "STRING",
-    "mode": "REQUIRED"
+    "type": "STRING"
   },
   {
     "name": "is_anycast",
-    "type": "STRING",
-    "mode": "REQUIRED"
+    "type": "STRING"
   },
   {
     "name": "ip4_space",
     "type": "RECORD",
+    "mode": "REPEATED",
     "fields": [
       {
         "name": "network",
-        "type": "STRING",
-        "mode": "REQUIRED"
+        "type": "STRING"
+      },
+      {
+        "name": "geoname_id",
+        "type": "STRING"
       },
       {
         "name": "registered_country_geoname_id",
-        "type": "STRING",
-        "mode": "REQUIRED"
+        "type": "STRING"
       },
       {
         "name": "represented_country_geoname_id",
-        "type": "STRING",
-        "mode": "REQUIRED"
+        "type": "STRING"
       },
       {
         "name": "is_anonymous_proxy",
-        "type": "STRING",
-        "mode": "REQUIRED"
+        "type": "STRING"
       },
       {
         "name": "is_satellite_provider",
-        "type": "STRING",
-        "mode": "REQUIRED"
+        "type": "STRING"
       },
       {
         "name": "is_anycast",
-        "type": "STRING",
-        "mode": "REQUIRED"
+        "type": "STRING"
       }
     ]
   }
