@@ -1,11 +1,18 @@
 import json
 import random
+import re
+import socket
 import time
 from ast import Set
 from collections import namedtuple
 from dataclasses import asdict, dataclass
 from itertools import islice
+from unittest import result
 
+import requests
+from requests import Request
+
+from config import Settings
 from models.nostr.event import EventKind
 from models.nostr.filter import Filter, Filters
 from models.nostr.message_pool import EventMessage
@@ -19,6 +26,30 @@ class Analytics:
     def __init__(self) -> None:
         self._relay_manager = RelayManager()
         self._found_relays: set = set()
+        self._config: Settings = Settings()
+
+    def get_geo_info(self, ip_addresses):
+        config: Settings = self._config
+        result = []
+        for ip in ip_addresses:
+            response = requests.get(
+                f'{config.ip_geolocation_url}?apiKey={config.ip_geolocation_key}&ip={ip}',
+                data=json.dumps(ip_addresses),
+                headers={'Content-Type': 'application/json'},
+            )
+            result.append(response.json())
+        return result
+
+    def get_geo_info_of_relay(self, relays: list[str]):
+        ip_addresses = []
+        geo_location_info = []
+        for relay_domain in relays:
+            try:
+                ip_address = socket.gethostbyname(relay_domain)
+                ip_addresses.append(ip_address)
+            except socket.gaierror:
+                return None
+            return self.get_geo_info(ip_addresses)
 
     def discover_relays(
         self, relay_seeds: list[str], min_relays_to_find: int = 5000
@@ -78,7 +109,8 @@ class Analytics:
                 self._relay_manager.add_subscription_on_all_relays(
                     'foo', filters=filters
                 )
-                time.sleep(2)  # TODO find better why of handling latency in connections
+                # TODO find better why of handling latency in connections
+                time.sleep(2)
 
         total = start_time - time.time()
         logger.info(f'Discovering {min_relays_to_find} relays  took {total}s')

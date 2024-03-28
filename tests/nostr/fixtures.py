@@ -68,6 +68,11 @@ def relay_seed_urls() -> list[str]:
 
 
 @pytest.fixture(scope='class')
+def damus_relay() -> str:
+    return 'relay.damus.io'
+
+
+@pytest.fixture(scope='class')
 def expected_min_num_relays_10() -> int:
     return 10
 

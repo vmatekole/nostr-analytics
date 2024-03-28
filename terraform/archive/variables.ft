@@ -1,7 +1,7 @@
 ################ PLEASE READ. THIS CODE IS ARCHIVED AND IS NO LONGER RELEVANT BUT GET FOR POSTERITY AND REFERENCE
 variable "credentials" {
   description = "Terraform Credentials"
-  default     =  "/Users/PI/code/datatalks/noble-velocity-411717-59617a8fb872-terraform.json"
+  default     =  "[PRIVATE KEY LOCATION]"
   #ex: if you have a directory where this file is called keys with your service account json file
   #saved there as my-creds.json you could use default = "./keys/my-creds.json"
 }

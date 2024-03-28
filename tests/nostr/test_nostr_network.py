@@ -9,6 +9,7 @@ from models.nostr.relay import Relay
 from models.nostr.relay_manager import RelayManager
 
 from .fixtures import (
+    damus_relay,
     event_input_data_1,
     event_input_data_2,
     event_input_data_3,
@@ -58,3 +59,25 @@ class TestNostrNetwork:
         relays = analytics.discover_relays(relay_seed_urls)
 
         assert len(relays) >= 1000
+
+    def test_get_geo_location_info_for_a_relay(self, damus_relay):
+        analytics = Analytics()
+        expected_result = {
+            'calling_code': '+1',
+            'city': 'San Francisco',
+            'continent_code': 'NA',
+            'continent_name': 'North America',
+            'country_capital': 'Washington, D.C.',
+            'country_code2': 'US',
+            'country_code3': 'USA',
+            'country_name': 'United States',
+            'country_name_official': 'United States of America',
+            'country_tld': '.us',
+        }
+
+        damus_info = analytics.get_geo_info_of_relay([damus_relay])
+
+        assert damus_info[0]['calling_code'] == expected_result['calling_code']
+        assert damus_info[0]['continent_name'] == expected_result['continent_name']
+        assert damus_info[0]['country_code2'] == expected_result['country_code2']
+        assert damus_info[0]['country_name'] == expected_result['country_name']

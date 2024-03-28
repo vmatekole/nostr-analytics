@@ -14,3 +14,5 @@ class Settings(BaseSettings):
     gcp_project_id: str
     test_event_bq_table_id: str
     test_event_bq_dataset_id: str
+    ip_geolocation_url: str
+    ip_geolocation_key: str
