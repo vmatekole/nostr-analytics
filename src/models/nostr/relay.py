@@ -1,11 +1,17 @@
 import json
+import socket
 import time
 from dataclasses import dataclass
 from queue import Queue
 from threading import Lock
 from typing import Optional
 
+import requests
+from pydantic import ConfigDict
 from websocket import WebSocketApp
+
+from config import ConfigSettings, Settings
+from utils import logger
 
 from .event import Event
 from .filter import Filters
@@ -16,6 +22,8 @@ from .subscription import Subscription
 
 @dataclass
 class RelayPolicy:
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     should_read: bool = True
     should_write: bool = True
 
@@ -25,6 +33,8 @@ class RelayPolicy:
 
 @dataclass
 class RelayProxyConnectionConfig:
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     host: Optional[str] = None
     port: Optional[int] = None
     type: Optional[str] = None
@@ -37,6 +47,11 @@ class Relay:
     policy: RelayPolicy = RelayPolicy()
     ssl_options: Optional[dict] = None
     proxy_config: RelayProxyConnectionConfig = None
+    country_code: str = None
+    latitude: float = None
+    longitude: float = None
+    connected: bool = False
+    ws: WebSocketApp = None
     # log_to_kafka: bool
 
     def __post_init__(self):
@@ -55,6 +70,13 @@ class Relay:
             on_error=self._on_error,
             on_close=self._on_close,
         )
+
+        if ConfigSettings.get_ip_geo_relay_info:
+            result = Relay.get_relay_geo_info([self.url.replace('wss://', '')])[0]
+            logger.debug(result)
+            self.country_code = result['country_code3']
+            self.latitude = result['latitude']
+            self.longitude = result['longtitude']
 
     def connect(self):
         self.ws.run_forever(
@@ -121,6 +143,9 @@ class Relay:
             ],
         }
 
+    def to_bq_row(self):
+        pass
+
     def _on_open(self, class_obj):
         self.connected = True
 
@@ -175,3 +200,34 @@ class Relay:
                 return False
 
         return True
+
+    @staticmethod
+    def get_geo_info(ip_addresses):
+        config: Settings = ConfigSettings
+        result = []
+        for ip in ip_addresses:
+            try:
+                response = requests.get(
+                    f'{config.ip_geolocation_url}?apiKey={config.ip_geolocation_key}&ip={ip}',
+                    data=json.dumps(ip_addresses),
+                    headers={'Content-Type': 'application/json'},
+                )
+
+                result.append(response.json())
+            except requests.HTTPError:
+                logger.error(
+                    f'Unable to call{config.ip_geolocation_url} for ip address {ip}'
+                )
+        return result
+
+    @staticmethod
+    def get_relay_geo_info(relays: list[str]):
+        ip_addresses = []
+        geo_location_info = []
+        for relay_domain in relays:
+            try:
+                ip_address = socket.gethostbyname(relay_domain)
+                ip_addresses.append(ip_address)
+            except socket.gaierror:
+                return None
+            return Relay.get_geo_info(ip_addresses)

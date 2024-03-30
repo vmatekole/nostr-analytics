@@ -61,7 +61,6 @@ class TestNostrNetwork:
         assert len(relays) >= 1000
 
     def test_get_geo_location_info_for_a_relay(self, damus_relay):
-        analytics = Analytics()
         expected_result = {
             'calling_code': '+1',
             'city': 'San Francisco',
@@ -75,9 +74,19 @@ class TestNostrNetwork:
             'country_tld': '.us',
         }
 
-        damus_info = analytics.get_geo_info_of_relay([damus_relay])
+        damus_info = Relay.get_relay_geo_info([damus_relay])
 
         assert damus_info[0]['calling_code'] == expected_result['calling_code']
         assert damus_info[0]['continent_name'] == expected_result['continent_name']
         assert damus_info[0]['country_code2'] == expected_result['country_code2']
         assert damus_info[0]['country_name'] == expected_result['country_name']
+
+    def test_geo_location_discovered(self, reliable_relay_url):
+        relay_manager: RelayManager = RelayManager()
+        relay_manager.add_relay(reliable_relay_url)
+
+        result: Relay = relay_manager.relays[reliable_relay_url]
+
+        # assert result.ws.sock.connected == True
+
+        assert result.country == 'US'

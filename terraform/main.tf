@@ -19,9 +19,9 @@ resource "google_bigquery_dataset" "test_events" {
 }
 
 resource "google_bigquery_table" "event" {
-  dataset_id = google_bigquery_dataset.test_events.dataset_id
-  depends_on = [google_bigquery_dataset.test_events]
-  table_id   = "event"
+  dataset_id          = google_bigquery_dataset.test_events.dataset_id
+  depends_on          = [google_bigquery_dataset.test_events]
+  table_id            = "event"
   deletion_protection = false
 
   schema = <<EOF
@@ -100,13 +100,24 @@ resource "google_bigquery_table" "relay" {
     "mode": "REQUIRED"
   },
   {
-    "name": "inserted_at",
-    "type": "TIMESTAMP",
-    "mode": "REQUIRED",
-    "default": "CURRENT_TIMESTAMP()"
+    "name": "country_code",
+    "type": "STRING"
   },
   {
-    "name": "ip4_space",
+    "name": "latitude",
+    "type": "FLOAT64"
+  },
+  {
+    "name": "longitude",
+    "type": "FLOAT64"
+  },
+  {
+    "name": "inserted_at",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "policy",
     "type": "RECORD",
     "fields": [
       {
@@ -130,5 +141,10 @@ EOF
   #   }
   lifecycle {
     prevent_destroy = false
+  }
+
+  #  This is a workaround not being able to set default values with terraform when creating the schema
+  provisioner "local-exec" {
+    command = "bq query --use_legacy_sql=false 'ALTER TABLE ${var.prd_nostr_dataset_id}.${var.prd_relay_table_id} ALTER COLUMN inserted_at SET DEFAULT CURRENT_TIMESTAMP()'"
   }
 }

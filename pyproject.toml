@@ -26,6 +26,7 @@ dev = [
     "requests>=2.31.0",
     "fastavro>=1.9.4",
     "pytest-mock>=3.14.0",
+    "dbt-bigquery>=1.7.7",
 ]
 [tool.black]
 skip-string-normalization = true

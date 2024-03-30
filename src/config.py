@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file='../.env', env_file_encoding='utf-8')
+    model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8')
     priv_key: str
     pub_key: str
     kafka_url: str
@@ -16,3 +16,7 @@ class Settings(BaseSettings):
     test_event_bq_dataset_id: str
     ip_geolocation_url: str
     ip_geolocation_key: str
+    get_ip_geo_relay_info: bool
+
+
+ConfigSettings = Settings()

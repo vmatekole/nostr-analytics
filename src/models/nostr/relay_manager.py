@@ -29,8 +29,7 @@ class RelayManager:
         ssl_options: dict = None,
         proxy_config: RelayProxyConnectionConfig = None,
     ):
-
-        relay = Relay(url, self.message_pool, policy, ssl_options, proxy_config)
+        relay = Relay(url, self.message_pool, policy)
 
         with self.lock:
             self.relays[url] = relay
