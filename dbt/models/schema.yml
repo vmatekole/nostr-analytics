@@ -1,0 +1,29 @@
+
+version: 2
+
+models:
+  - name: relay_location
+    columns:
+      - name: relay_url
+        description: "The URL of the relay"
+        tests:
+          - not_null
+      - name: country_code
+        description: "The country code"
+      - name: location
+        description: "Combined longitude and latitude"
+      - name: inserted_at
+        description: "The timestamp when data was inserted"
+        tests:
+          - not_null
+      - name: policy
+        description: "The policy"
+        columns:
+          - name: read
+            description: "Boolean indicating read access"
+            tests:
+              - not_null
+          - name: write
+            description: "Boolean indicating write access"
+            tests:
+              - not_null
