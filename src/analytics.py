@@ -8,7 +8,7 @@ from dataclasses import asdict, dataclass
 
 import requests
 
-from config import ConfigSettings
+from config import ConfigSettings, Settings
 from models.nostr.event import EventKind
 from models.nostr.filter import Filter, Filters
 from models.nostr.message_pool import EventMessage
@@ -22,7 +22,7 @@ class Analytics:
     def __init__(self) -> None:
         self._relay_manager = RelayManager()
         self._found_relays: set = set()
-        self._config: Settings = Settings()
+        self._config: Settings = ConfigSettings
 
     def discover_relays(
         self, relay_seeds: list[str], min_relays_to_find: int = 5000

@@ -1,9 +1,19 @@
-from config import Settings
+from google.cloud import bigquery
+
+from client.bq import Bq
+from config import ConfigSettings, Settings
 from models.bigquery.utils import BqUtils
 from models.nostr.event import Event
+from models.nostr.relay import Relay
+from services.bq import RelayService
 from utils import logger
 
-from .fixtures import event_bq_insert_data_1, event_bq_insert_data_2, event_bq_schema
+from .fixtures import (
+    event_bq_insert_data_1,
+    event_bq_insert_data_2,
+    event_bq_insert_data_3,
+    event_bq_schema,
+)
 
 
 class TestBiqQuery:
@@ -15,20 +25,32 @@ class TestBiqQuery:
         assert BqUtils.persist_to_bigquery(
             [event],
             config.gcp_project_id,
-            config.test_event_bq_dataset_id,
-            config.test_event_bq_table_id,
+            config.bq_dataset_id,
+            config.bq_event_table_id,
         )
 
     def test_event_tags_insert(self, event_bq_insert_data_2):
-        config = Settings()
+        config = ConfigSettings
         assert Event.model_validate(event_bq_insert_data_2)
         event: Event = Event(**event_bq_insert_data_2)
 
         assert BqUtils.persist_to_bigquery(
             [event],
             config.gcp_project_id,
-            config.test_event_bq_dataset_id,
-            config.test_event_bq_table_id,
+            config.bq_dataset_id,
+            config.bq_event_table_id,
+        )
+
+    def test_event_tags_complex_insert(self, event_bq_insert_data_3):
+        config = ConfigSettings
+        assert Event.model_validate(event_bq_insert_data_3)
+        event: Event = Event(**event_bq_insert_data_3)
+
+        assert BqUtils.persist_to_bigquery(
+            [event],
+            config.gcp_project_id,
+            config.bq_dataset_id,
+            config.bq_event_table_id,
         )
 
     # def test_bad_event_insert(self, event_bq_insert_data_1):
@@ -70,3 +92,10 @@ class TestBiqQuery:
                 },
             ],
         }
+
+    def test_bq_get_relays(self):
+        client = bigquery.Client()
+        bq_service = RelayService(client)
+        relays = bq_service.get_relays()
+
+        assert relays == []
