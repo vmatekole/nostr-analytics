@@ -17,21 +17,7 @@ variable "location" {
   default = "US"
 }
 
-# Test data variables
-variable "test_event_dataset_id" {
-  description = "bq dataset id"
-  default     = "test_event"
-}
-
-variable "test_event_table_id" {
-  description = "bq table id"
-  default     = "event"
-}
-
-variable "test_relay_table_id" {
-  description = "bq table id"
-  default     = "relay"
-}
+# Schemas Event & Relay
 
 variable "event_schema" {
   default = <<EOF
@@ -141,6 +127,22 @@ variable "relay_schema" {
 ]
 EOF
 
+}
+
+# Test data variables
+variable "test_event_dataset_id" {
+  description = "bq dataset id"
+  default     = "test_event"
+}
+
+variable "test_event_table_id" {
+  description = "bq table id"
+  default     = "event"
+}
+
+variable "test_relay_table_id" {
+  description = "bq table id"
+  default     = "relay"
 }
 
 # Production variables
