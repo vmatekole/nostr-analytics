@@ -1,12 +1,8 @@
-variable "delete_protection" {
-  default = false
-}
 provider "google" {
   project = var.project
   region  = var.region
 
 }
-
 
 resource "google_bigquery_dataset" "test_events" {
   dataset_id = var.test_event_dataset_id
@@ -60,7 +56,6 @@ resource "google_bigquery_table" "prd_event" {
   table_id            = var.prd_event_table_id
   depends_on          = [google_bigquery_dataset.nostr_production_data]
   deletion_protection = false
-
   schema = var.event_schema
 }
 

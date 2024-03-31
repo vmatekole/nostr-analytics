@@ -62,14 +62,8 @@ variable "event_schema" {
       },
       {
         "name": "tag_values",
-        "type": "RECORD",
         "mode": "REPEATED",
-        "fields": [
-          {
-            "name": "tag_value",
-            "type": "STRING"
-          }
-        ]
+        "type": "STRING"
       }
     ]
   }
