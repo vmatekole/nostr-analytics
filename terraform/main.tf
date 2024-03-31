@@ -17,61 +17,7 @@ resource "google_bigquery_table" "test_event" {
   table_id            = var.test_event_table_id
   depends_on          = [google_bigquery_dataset.test_events]
   deletion_protection = false
-  schema              = <<EOF
-[
-  {
-    "name": "content",
-    "type": "STRING"
-  },
-  {
-    "name": "pubkey",
-    "type": "STRING",
-    "mode": "REQUIRED"
-  },
-  {
-    "name": "created_at",
-    "type": "INT64",
-    "mode": "REQUIRED"
-  },
-  {
-    "name": "inserted_at",
-    "type": "TIMESTAMP",
-    "mode": "NULLABLE",
-    "description": "DEFAULT CURRENT_TIMESTAMP()"
-  },
-  {
-    "name": "kind",
-    "type": "INT64",
-    "mode": "REQUIRED"
-  },
-  {
-    "name": "sig",
-    "type": "STRING"
-  },
-  {
-    "name": "tags",
-    "type": "RECORD",
-    "mode": "REPEATED",
-    "fields": [
-      {
-        "name": "tag_id",
-        "type": "INT64"
-      },
-      {
-        "name": "tag_values",
-        "type": "RECORD",
-        "mode": "REPEATED",
-        "fields": [
-          {
-            "name": "tag_value",
-            "type": "STRING"
-          }
-        ]
-      }
-    ]
-  }
-]
-EOF
+  schema              = var.event_schema
 }
 
 resource "google_bigquery_table" "test_relay" {
@@ -79,53 +25,7 @@ resource "google_bigquery_table" "test_relay" {
   table_id            = var.test_relay_table_id
   depends_on          = [google_bigquery_dataset.test_events]
   deletion_protection = false
-  schema              = <<EOF
-[
-  {
-    "name": "relay_name",
-    "type": "STRING",
-    "mode": "REQUIRED"
-  },
-  {
-    "name": "relay_url",
-    "type": "STRING",
-    "mode": "REQUIRED"
-  },
-  {
-    "name": "country_code",
-    "type": "STRING"
-  },
-  {
-    "name": "latitude",
-    "type": "FLOAT64"
-  },
-  {
-    "name": "longitude",
-    "type": "FLOAT64"
-  },
-  {
-    "name": "inserted_at",
-    "type": "TIMESTAMP",
-    "mode": "REQUIRED"
-  },
-  {
-    "name": "policy",
-    "type": "RECORD",
-    "fields": [
-      {
-        "name": "read",
-        "type": "BOOLEAN",
-        "mode": "REQUIRED"
-      },
-      {
-        "name": "write",
-        "type": "BOOLEAN",
-        "mode": "REQUIRED"
-      }
-    ]
-  }
-]
-EOF
+  schema              = var.relay_schema
 
   #   provisioner "local-exec" {
   #     command     = "python import_data.py"
@@ -161,61 +61,7 @@ resource "google_bigquery_table" "prd_event" {
   depends_on          = [google_bigquery_dataset.nostr_production_data]
   deletion_protection = false
 
-  schema = <<EOF
-[
-  {
-    "name": "content",
-    "type": "STRING"
-  },
-  {
-    "name": "pubkey",
-    "type": "STRING",
-    "mode": "REQUIRED"
-  },
-  {
-    "name": "created_at",
-    "type": "INT64",
-    "mode": "REQUIRED"
-  },
-  {
-    "name": "inserted_at",
-    "type": "TIMESTAMP",
-    "mode": "NULLABLE",
-    "description": "DEFAULT CURRENT_TIMESTAMP()"
-  },
-  {
-    "name": "kind",
-    "type": "INT64",
-    "mode": "REQUIRED"
-  },
-  {
-    "name": "sig",
-    "type": "STRING"
-  },
-  {
-    "name": "tags",
-    "type": "RECORD",
-    "mode": "REPEATED",
-    "fields": [
-      {
-        "name": "tag_id",
-        "type": "INT64"
-      },
-      {
-        "name": "tag_values",
-        "type": "RECORD",
-        "mode": "REPEATED",
-        "fields": [
-          {
-            "name": "tag_value",
-            "type": "STRING"
-          }
-        ]
-      }
-    ]
-  }
-]
-EOF
+  schema = var.event_schema
 }
 
 
@@ -224,53 +70,7 @@ resource "google_bigquery_table" "prd_relay" {
   table_id            = var.prd_relay_table_id
   depends_on          = [google_bigquery_dataset.nostr_production_data]
   deletion_protection = true
-  schema              = <<EOF
-[
-  {
-    "name": "relay_name",
-    "type": "STRING",
-    "mode": "REQUIRED"
-  },
-  {
-    "name": "relay_url",
-    "type": "STRING",
-    "mode": "REQUIRED"
-  },
-  {
-    "name": "country_code",
-    "type": "STRING"
-  },
-  {
-    "name": "latitude",
-    "type": "FLOAT64"
-  },
-  {
-    "name": "longitude",
-    "type": "FLOAT64"
-  },
-  {
-    "name": "inserted_at",
-    "type": "TIMESTAMP",
-    "mode": "REQUIRED"
-  },
-  {
-    "name": "policy",
-    "type": "RECORD",
-    "fields": [
-      {
-        "name": "read",
-        "type": "BOOLEAN",
-        "mode": "REQUIRED"
-      },
-      {
-        "name": "write",
-        "type": "BOOLEAN",
-        "mode": "REQUIRED"
-      }
-    ]
-  }
-]
-EOF
+  schema              = var.relay_schema
 
   #   provisioner "local-exec" {
   #     command     = "python import_data.py"

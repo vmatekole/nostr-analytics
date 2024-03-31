@@ -12,11 +12,12 @@ class Settings(BaseSettings):
     kafka_schema_auth_token: str
     kafka_consumer_group: str
     gcp_project_id: str
-    test_event_bq_table_id: str
-    test_event_bq_dataset_id: str
+    bq_dataset_id: str
+    bq_event_table_id: str
+    bq_relay_table_id: str
     ip_geolocation_url: str
     ip_geolocation_key: str
-    get_ip_geo_relay_info: bool
+    relay_refresh_ip_geo_relay_info: bool
 
 
 ConfigSettings = Settings()

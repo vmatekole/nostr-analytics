@@ -33,6 +33,116 @@ variable "test_relay_table_id" {
   default     = "relay"
 }
 
+variable "event_schema" {
+  default = <<EOF
+[
+  {
+    "name": "content",
+    "type": "STRING"
+  },
+  {
+    "name": "pubkey",
+    "type": "STRING",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "created_at",
+    "type": "INT64",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "inserted_at",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE",
+    "description": "DEFAULT CURRENT_TIMESTAMP()"
+  },
+  {
+    "name": "kind",
+    "type": "INT64",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "sig",
+    "type": "STRING"
+  },
+  {
+    "name": "tags",
+    "type": "RECORD",
+    "mode": "REPEATED",
+    "fields": [
+      {
+        "name": "tag_id",
+        "type": "INT64"
+      },
+      {
+        "name": "tag_values",
+        "type": "RECORD",
+        "mode": "REPEATED",
+        "fields": [
+          {
+            "name": "tag_value",
+            "type": "STRING"
+          }
+        ]
+      }
+    ]
+  }
+]
+EOF
+
+}
+
+variable "relay_schema" {
+  default = <<EOF
+[
+  {
+    "name": "relay_name",
+    "type": "STRING",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "relay_url",
+    "type": "STRING",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "country_code",
+    "type": "STRING"
+  },
+  {
+    "name": "latitude",
+    "type": "FLOAT64"
+  },
+  {
+    "name": "longitude",
+    "type": "FLOAT64"
+  },
+  {
+    "name": "inserted_at",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "policy",
+    "type": "RECORD",
+    "fields": [
+      {
+        "name": "read",
+        "type": "BOOLEAN",
+        "mode": "REQUIRED"
+      },
+      {
+        "name": "write",
+        "type": "BOOLEAN",
+        "mode": "REQUIRED"
+      }
+    ]
+  }
+]
+EOF
+
+}
+
 # Production variables
 variable "prd_nostr_dataset_id" {
   description = "bq dataset id"
