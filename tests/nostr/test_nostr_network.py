@@ -53,7 +53,7 @@ class TestNostrNetwork:
         assert len(result) > 7
         assert result.get(reliable_relay_url) == reliable_relay_policy
 
-    def test_get_relays(self, relay_seed_urls, expected_min_num_relays_10):
+    def test_discover_relays(self, relay_seed_urls, expected_min_num_relays_10):
         analytics: Analytics = Analytics()
 
         relays = analytics.discover_relays(relay_seed_urls)

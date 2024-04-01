@@ -3,11 +3,11 @@ from models.nostr.relay import Relay
 
 class RelaySQL:
     @staticmethod
-    def select_relays(dataset_id: str) -> str:
-        query: str = (
-            f'SELECT relay_name, relay_url, country_code, latitude, longitude, policy.read, policy.write'
-            f'FROM `{dataset_id}.relay`'
-        )
+    def select_all_from(dataset_id: str, table_id: str) -> str:
+        query: str = f'''
+                    SELECT CONCAT("[", STRING_AGG(TO_JSON_STRING(t), ","), "]")
+                    FROM `{dataset_id}.{table_id}` t
+                '''
         return query
 
     @staticmethod

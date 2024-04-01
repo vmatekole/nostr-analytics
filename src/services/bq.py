@@ -21,9 +21,13 @@ class RelayService(BqService):
     def get_relays(self):
         logger.debug(f'ConfigSettings.bq_dataset_id{ConfigSettings.bq_dataset_id}')
         result = list(
-            self._bq.run_sql(RelaySQL.select_relays(ConfigSettings.bq_dataset_id))
+            self._bq.run_sql(
+                RelaySQL.select_all_from(
+                    ConfigSettings.bq_dataset_id, ConfigSettings.bq_relay_table_id
+                )
+            )
         )
-        return result
+        return result[0][0]
 
     def insert_relays(self, relays):
         config: Settings = ConfigSettings
@@ -35,7 +39,9 @@ class RelayService(BqService):
         )
 
     def update_relays(self, relays):
-        pass
+        config: Settings = ConfigSettings
+        query = RelaySQL.update_relays(relays)
+        return self._bq.run_sql(query)
 
 
 class EventService(BqService):

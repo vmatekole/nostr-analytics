@@ -1,5 +1,8 @@
+from typing import Union
+
 from google.api_core.exceptions import ClientError
 from google.cloud import bigquery
+from google.cloud.bigquery.table import RowIterator, _EmptyRowIterator
 
 from utils import logger
 
@@ -11,8 +14,7 @@ class Bq:
     def run_sql(
         self,
         query,
-        parameters=None,
-    ) -> None:
+    ) -> Union[RowIterator, _EmptyRowIterator, None]:
         logger.debug(f'SQL: {query}')
         job_config = bigquery.QueryJobConfig()
 

@@ -1,4 +1,7 @@
+import json
+
 from google.cloud import bigquery
+from sqlalchemy import true
 
 from client.bq import Bq
 from config import ConfigSettings, Settings
@@ -112,9 +115,17 @@ class TestBiqQuery:
 
         assert relay_service.insert_relays(discovered_relays)
 
-    def test_get_relays(self):
+    def test_get_relay(self):
         client = bigquery.Client()
-        bq_service = RelayService(client)
-        relays = bq_service.get_relays()
-
-        assert relays == []
+        relay_service = RelayService(client)
+        relays = json.loads(relay_service.get_relays())
+        relays[0].pop('inserted_at')  # inserted_at can change
+        damus_relay = relays[0]
+        assert damus_relay == {
+            'relay_name': '',
+            'relay_url': 'wss://relay.damus.io',
+            'country_code': 'USA',
+            'latitude': 37.78035,
+            'longitude': -122.39059,
+            'policy': {'read': True, 'write': True},
+        }
