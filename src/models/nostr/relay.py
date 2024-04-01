@@ -45,6 +45,7 @@ class Relay:
     url: str
     message_pool: MessagePool
     policy: RelayPolicy = RelayPolicy()
+    relay_name: str = None
     ssl_options: Optional[dict] = None
     proxy_config: RelayProxyConnectionConfig = None
     country_code: str = None
@@ -71,12 +72,8 @@ class Relay:
             on_close=self._on_close,
         )
 
-        if ConfigSettings.get_ip_geo_relay_info:
-            result = Relay.get_relay_geo_info([self.url.replace('wss://', '')])[0]
-            logger.debug(result)
-            self.country_code = result['country_code3']
-            self.latitude = result['latitude']
-            self.longitude = result['longtitude']
+        if ConfigSettings.relay_refresh_ip_geo_relay_info:
+            self.refresh_geo_ip_info()
 
     def connect(self):
         self.ws.run_forever(
@@ -200,6 +197,12 @@ class Relay:
                 return False
 
         return True
+
+    def refresh_geo_ip_info(self):
+        result = Relay.get_relay_geo_info([self.url.replace('wss://', '')])[0]
+        self.country_code = result['country_code3']
+        self.latitude = result['latitude']
+        self.longitude = result['longitude']
 
     @staticmethod
     def get_geo_info(ip_addresses):

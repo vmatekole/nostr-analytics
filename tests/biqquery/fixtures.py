@@ -1,6 +1,9 @@
 import pytest
 from google.cloud import bigquery
 
+from models.nostr.message_pool import MessagePool
+from models.nostr.relay import Relay
+
 
 @pytest.fixture(scope='class')
 def event_bq_bad_insert():
@@ -84,3 +87,26 @@ def event_bq_schema():
             None,
         ),
     ]
+
+
+@pytest.fixture(scope='class')
+def discovered_relays() -> list[Relay]:
+    message_pool = MessagePool()
+    relay1 = Relay(
+        message_pool=message_pool,
+        url='wss://relay.damus.io',
+    )
+
+    relay2 = Relay(
+        message_pool=message_pool,
+        url='wss://nostr.wine',
+    )
+
+    relay3 = Relay(
+        message_pool=message_pool,
+        url='wss://nostr.t-rg.ws',
+    )
+
+    relays: list[Relay] = [relay1, relay2, relay3]
+
+    return relays
