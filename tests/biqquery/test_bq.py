@@ -2,13 +2,14 @@ from google.cloud import bigquery
 
 from client.bq import Bq
 from config import ConfigSettings, Settings
-from models.bigquery.utils import BqUtils
 from models.nostr.event import Event
 from models.nostr.relay import Relay
-from services.bq import RelayService
+from services.bq import EventService, RelayService
+from tests import biqquery
 from utils import logger
 
 from .fixtures import (
+    discovered_relays,
     event_bq_insert_data_1,
     event_bq_insert_data_2,
     event_bq_insert_data_3,
@@ -17,24 +18,21 @@ from .fixtures import (
 
 
 class TestBiqQuery:
-    def test_event_insert(self, event_bq_insert_data_1):
-        config = Settings()
+    def test_insert_event(self, event_bq_insert_data_1):
+        config = ConfigSettings
         assert Event.model_validate(event_bq_insert_data_1)
         event: Event = Event(**event_bq_insert_data_1)
 
-        assert BqUtils.persist_to_bigquery(
-            [event],
-            config.gcp_project_id,
-            config.bq_dataset_id,
-            config.bq_event_table_id,
-        )
+        event_service = EventService(bigquery.Client())
+        assert event_service.insert_events([event])
 
     def test_event_tags_insert(self, event_bq_insert_data_2):
-        config = ConfigSettings
+        config: Settings = ConfigSettings
         assert Event.model_validate(event_bq_insert_data_2)
         event: Event = Event(**event_bq_insert_data_2)
 
-        assert BqUtils.persist_to_bigquery(
+        event_service = EventService(biqquery.Client())
+        assert BqUtils.insert_to_biqguery(
             [event],
             config.gcp_project_id,
             config.bq_dataset_id,
@@ -42,11 +40,11 @@ class TestBiqQuery:
         )
 
     def test_event_tags_complex_insert(self, event_bq_insert_data_3):
-        config = ConfigSettings
+        config: Settings = ConfigSettings
         assert Event.model_validate(event_bq_insert_data_3)
         event: Event = Event(**event_bq_insert_data_3)
 
-        assert BqUtils.persist_to_bigquery(
+        assert BqUtils.insert_to_biqguery(
             [event],
             config.gcp_project_id,
             config.bq_dataset_id,
@@ -93,7 +91,28 @@ class TestBiqQuery:
             ],
         }
 
-    def test_bq_get_relays(self):
+    def test_bq_dump(self, discovered_relays):
+        relay: Relay = discovered_relays[0]
+
+        result = relay.bq_dump()
+        assert result == {
+            'country_code': 'USA',
+            'latitude': '37.78035',
+            'longitude': '-122.39059',
+            'policy': {
+                'read': True,
+                'write': True,
+            },
+            'relay_name': None,
+            'url': 'wss://relay.damus.io',
+        }
+
+    def test_insert_relay(self, discovered_relays):
+        relay_service = RelayService(bigquery.Client())
+
+        assert relay_service.insert_relays(discovered_relays)
+
+    def test_get_relays(self):
         client = bigquery.Client()
         bq_service = RelayService(client)
         relays = bq_service.get_relays()

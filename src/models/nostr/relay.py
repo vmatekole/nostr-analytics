@@ -2,6 +2,7 @@ import json
 import socket
 import time
 from dataclasses import dataclass
+from email import policy
 from queue import Queue
 from threading import Lock
 from typing import Optional
@@ -75,6 +76,61 @@ class Relay:
         if ConfigSettings.relay_refresh_ip_geo_relay_info:
             self.refresh_geo_ip_info()
 
+    def _on_open(self, class_obj):
+        self.connected = True
+
+    def _on_close(self, class_obj, status_code, message):
+        self.connected = False
+
+    def _on_message(self, class_obj, message: str):
+        self.message_pool.add_message(message, self.url)
+
+    def _on_error(self, class_obj, error):
+        self.connected = False
+        self.error_counter += 1
+        if self.error_threshold and self.error_counter > self.error_threshold:
+            pass
+        else:
+            self.check_reconnect()
+
+    def _is_valid_message(self, message: str) -> bool:
+        message = message.strip('\n')
+        if not message or message[0] != '[' or message[-1] != ']':
+            return False
+
+        message_json = json.loads(message)
+        message_type = message_json[0]
+        if not RelayMessageType.is_valid(message_type):
+            return False
+        if message_type == RelayMessageType.EVENT:
+            if not len(message_json) == 3:
+                return False
+
+            subscription_id = message_json[1]
+            with self.lock:
+                if subscription_id not in self.subscriptions:
+                    return False
+
+            e = message_json[2]
+            event = Event(
+                e['content'],
+                e['pubkey'],
+                e['created_at'],
+                e['kind'],
+                e['tags'],
+                e['sig'],
+            )
+            if not event.verify():
+                return False
+
+            with self.lock:
+                subscription = self.subscriptions[subscription_id]
+
+            if subscription.filters and not subscription.filters.match(event):
+                return False
+
+        return True
+
     def connect(self):
         self.ws.run_forever(
             sslopt=self.ssl_options,
@@ -140,63 +196,18 @@ class Relay:
             ],
         }
 
-    def to_bq_row(self):
-        pass
-
-    def _on_open(self, class_obj):
-        self.connected = True
-
-    def _on_close(self, class_obj, status_code, message):
-        self.connected = False
-
-    def _on_message(self, class_obj, message: str):
-        self.message_pool.add_message(message, self.url)
-
-    def _on_error(self, class_obj, error):
-        self.connected = False
-        self.error_counter += 1
-        if self.error_threshold and self.error_counter > self.error_threshold:
-            pass
-        else:
-            self.check_reconnect()
-
-    def _is_valid_message(self, message: str) -> bool:
-        message = message.strip('\n')
-        if not message or message[0] != '[' or message[-1] != ']':
-            return False
-
-        message_json = json.loads(message)
-        message_type = message_json[0]
-        if not RelayMessageType.is_valid(message_type):
-            return False
-        if message_type == RelayMessageType.EVENT:
-            if not len(message_json) == 3:
-                return False
-
-            subscription_id = message_json[1]
-            with self.lock:
-                if subscription_id not in self.subscriptions:
-                    return False
-
-            e = message_json[2]
-            event = Event(
-                e['content'],
-                e['pubkey'],
-                e['created_at'],
-                e['kind'],
-                e['tags'],
-                e['sig'],
-            )
-            if not event.verify():
-                return False
-
-            with self.lock:
-                subscription = self.subscriptions[subscription_id]
-
-            if subscription.filters and not subscription.filters.match(event):
-                return False
-
-        return True
+    def bq_dump(self):
+        return {
+            'relay_url': self.url,
+            'relay_name': self.relay_name or '',
+            'country_code': self.country_code,
+            'latitude': self.latitude,
+            'longitude': self.longitude,
+            'policy': {
+                'read': self.policy.should_read,
+                'write': self.policy.should_write,
+            },
+        }
 
     def refresh_geo_ip_info(self):
         result = Relay.get_relay_geo_info([self.url.replace('wss://', '')])[0]

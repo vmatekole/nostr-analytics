@@ -1,16 +1,26 @@
+from models.nostr.relay import Relay
 from models.sql import RelaySQL
 
 from .fixtures import discovered_relays
 
 
 class TestSQL:
-    def test_update_relays_sql(self, discovered_relays):
+    def normalise_string(self, query: str):
+        return ''.split(query)
 
-        normalise_string = lambda s: ''.split(s)
+    def test_select_relays_sql(self):
+        dataset_id = 'test_events'
+        result = RelaySQL.select_relays(dataset_id)
+        assert (
+            result
+            == 'SELECT relay_name, relay_url, country_code, latitude, longitude, policy.read, policy.writeFROM `test_events.relay`'
+        )
+
+    def test_update_relays_sql(self, discovered_relays: list[Relay]):
 
         query = RelaySQL.update_relays([discovered_relays[0]])
 
-        assert normalise_string(query) == normalise_string(
+        assert self.normalise_string(query) == self.normalise_string(
             """UPDATE relay
                             SET relay_name = None,
                             SET country_code= USA,'
