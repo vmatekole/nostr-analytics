@@ -11,15 +11,15 @@ class RelaySQL:
         return query
 
     @staticmethod
-    def update_relays(relays: list[Relay]):
+    def update_relays(dataset_id: str, relays: list[Relay]):
         for relay in relays:
             query: str = f"""
-                UPDATE relay
-                SET relay_name = {relay.relay_name},
-                SET country_code= {relay.country_code},'
-                SET latitude = {relay.latitude},'
-                SET longitude = {relay.relay_name},'
-                SET policy.write = {relay.policy.should_read},'
-                SET policy.read = {relay.policy.should_write},'
-                WHERE relay_url = {relay.url} \n"""
+                UPDATE `{dataset_id}.relay`
+                SET relay_name = '{relay.relay_name or  "damus"}',
+                    country_code = '{relay.country_code}',
+                    latitude = {relay.latitude},
+                    longitude = {relay.longitude},
+                    policy.write = {relay.policy.should_read},
+                    policy.read = {relay.policy.should_write}
+                WHERE relay_url = '{relay.url}' \n"""
             return query

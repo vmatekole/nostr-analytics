@@ -129,3 +129,11 @@ class TestBiqQuery:
             'longitude': -122.39059,
             'policy': {'read': True, 'write': True},
         }
+
+    def test_update_relays(self, discovered_relays):
+        client = bigquery.Client()
+        relay_service = RelayService(client)
+        result = json.loads(
+            relay_service.update_relays(ConfigSettings.bq_dataset_id, discovered_relays)
+        )
+        assert result == []

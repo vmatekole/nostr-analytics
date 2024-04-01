@@ -1,9 +1,12 @@
 from time import sleep
+from typing import Union
 
 from google.cloud import bigquery
+from google.cloud.bigquery.table import RowIterator, _EmptyRowIterator
 
 from client.bq import Bq
 from config import ConfigSettings, Settings
+from models.nostr.relay import Relay
 from models.sql import RelaySQL
 from utils import logger
 
@@ -29,7 +32,7 @@ class RelayService(BqService):
         )
         return result[0][0]
 
-    def insert_relays(self, relays):
+    def insert_relays(self, relays: list[Relay]):
         config: Settings = ConfigSettings
         return self._bq.insert_to_bigquery(
             relays,
@@ -38,9 +41,10 @@ class RelayService(BqService):
             config.bq_relay_table_id,
         )
 
-    def update_relays(self, relays):
-        config: Settings = ConfigSettings
-        query = RelaySQL.update_relays(relays)
+    def update_relays(
+        self, dataset_id: str, relays: list[Relay]
+    ) -> Union[RowIterator, _EmptyRowIterator, None]:
+        query = RelaySQL.update_relays(dataset_id, relays)
         return self._bq.run_sql(query)
 
 
