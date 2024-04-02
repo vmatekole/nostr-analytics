@@ -23,10 +23,7 @@ resource "google_bigquery_table" "test_relay" {
   deletion_protection = false
   schema              = var.relay_schema
 
-  #   provisioner "local-exec" {
-  #     command     = "python import_data.py"
-  #     working_dir = path.module
-  #   }
+
   lifecycle {
     prevent_destroy = false
   }
@@ -67,10 +64,7 @@ resource "google_bigquery_table" "prd_relay" {
   deletion_protection = true
   schema              = var.relay_schema
 
-  #   provisioner "local-exec" {
-  #     command     = "python import_data.py"
-  #     working_dir = path.module
-  #   }
+
   lifecycle {
     prevent_destroy = false
   }
