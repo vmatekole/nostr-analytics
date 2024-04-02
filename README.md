@@ -3,7 +3,7 @@
 A analytics/NLP engine for decentralised social networks.
 
 ## Problem statement
-Data on Decentralised social networks is sharded and distributed across multiple nodes. Unlike blockchains there is no single source truth. Decentralised analytics aims to provide a robust, architecture that allows us for accurate analytics from decentralised networks such as Nostr and Farcaster.
+Data on Decentralised social networks is sharded and distributed across multiple nodes. Unlike blockchains there is no single source of truth. Decentralised analytics aims to provide a robust, architecture that allows for accurate analytics from decentralised networks such as Nostr and Farcaster.
 
 ## Supported Networks
 - [Nostr](https://nostr.com/)
@@ -20,9 +20,8 @@ Data on Decentralised social networks is sharded and distributed across multiple
 - BigQuery for Data Warehousing
 - DBT for data modelling
 - [MetaBase](https://www.metabase.com/) for dashboards
-  - Overview dashboard
-  - Number of active relays / users
-  - Topics and subscriptions  <!-- Need to define thie better ->
+  - Number of active relays displayed on a geographic map
+  - Number of daily events and their [kinds](https://nostrdata.github.io/kinds/)
 
 ## Deployment
 - Single command deployment using Terraforma:
@@ -39,4 +38,4 @@ Data on Decentralised social networks is sharded and distributed across multiple
 ## Usage
 
 ## Acknowledgements
-Thanks to [python-nostr] author of [python-nostr] where the Nostr [base models](src/models/nostr/) were largely taken from.
+Thanks to [@jessthibault](https://github.com/jeffthibault) author of [python-nostr](https://github.com/jeffthibault/python-nostr) where the Nostr [base models](src/models/nostr/) were largely taken from and modified.
