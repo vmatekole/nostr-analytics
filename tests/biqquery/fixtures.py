@@ -1,6 +1,7 @@
 import pytest
 from google.cloud import bigquery
 
+from config import ConfigSettings
 from models.nostr.message_pool import MessagePool
 from models.nostr.relay import Relay
 
@@ -109,4 +110,29 @@ def discovered_relays() -> list[Relay]:
 
     relays: list[Relay] = [relay1, relay2, relay3]
 
+    return relays
+
+
+@pytest.fixture(scope='class')
+def discovered_relays_without_geo_location() -> list[Relay]:
+    ConfigSettings.relay_refresh_ip_geo_relay_info = False
+    message_pool = MessagePool()
+    relay1 = Relay(
+        message_pool=message_pool,
+        url='wss://relay.damus.io',
+    )
+
+    relay2 = Relay(
+        message_pool=message_pool,
+        url='wss://nostr.wine',
+    )
+
+    relay3 = Relay(
+        message_pool=message_pool,
+        url='wss://nostr.t-rg.ws',
+    )
+
+    relays: list[Relay] = [relay1, relay2, relay3]
+    # Restore ConfigSettings
+    ConfigSettings.relay_refresh_ip_geo_relay_info = True
     return relays

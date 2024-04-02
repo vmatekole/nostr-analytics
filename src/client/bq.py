@@ -15,7 +15,6 @@ class Bq:
         self,
         query,
     ) -> Union[RowIterator, _EmptyRowIterator, None]:
-        logger.debug(f'SQL: {query}')
         job_config = bigquery.QueryJobConfig()
 
         query_job: bigquery.QueryJob = self._client.query(query, job_config=job_config)
@@ -40,8 +39,6 @@ class Bq:
             row: dict[str, Any] = obj.bq_dump()
             rows_to_insert.append(row)
 
-        logger.debug(f'TABLE: {table}')
-        logger.debug(f'rows: {rows_to_insert}')
         # Insert rows into BigQuery table
         errors = client.insert_rows_json(table, rows_to_insert)
         if errors:

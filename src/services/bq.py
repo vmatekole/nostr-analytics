@@ -1,5 +1,6 @@
+import json
 from time import sleep
-from typing import Union
+from typing import Any, Union
 
 from google.cloud import bigquery
 from google.cloud.bigquery.table import RowIterator, _EmptyRowIterator
@@ -21,8 +22,7 @@ class RelayService(BqService):
     def __init__(self, client) -> None:
         super().__init__(client)
 
-    def get_relays(self):
-        logger.debug(f'ConfigSettings.bq_dataset_id{ConfigSettings.bq_dataset_id}')
+    def get_relays(self) -> list[Any]:
         result = list(
             self._bq.run_sql(
                 RelaySQL.select_all_from(
@@ -30,7 +30,8 @@ class RelayService(BqService):
                 )
             )
         )
-        return result[0][0]
+        relays = json.loads(result[0][0])
+        return relays
 
     def insert_relays(self, relays: list[Relay]):
         config: Settings = ConfigSettings

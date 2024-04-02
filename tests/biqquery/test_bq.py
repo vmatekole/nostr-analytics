@@ -1,6 +1,8 @@
-import json
+import time
+from typing import Any, Union
 
 from google.cloud import bigquery
+from google.cloud.bigquery.table import RowIterator, _EmptyRowIterator
 from sqlalchemy import true
 
 from client.bq import Bq
@@ -13,6 +15,7 @@ from utils import logger
 
 from .fixtures import (
     discovered_relays,
+    discovered_relays_without_geo_location,
     event_bq_insert_data_1,
     event_bq_insert_data_2,
     event_bq_insert_data_3,
@@ -118,11 +121,11 @@ class TestBiqQuery:
     def test_get_relay(self):
         client = bigquery.Client()
         relay_service = RelayService(client)
-        relays = json.loads(relay_service.get_relays())
+        relays: list[Any] = relay_service.get_relays()
         relays[0].pop('inserted_at')  # inserted_at can change
         damus_relay = relays[0]
         assert damus_relay == {
-            'relay_name': '',
+            'relay_name': None,
             'relay_url': 'wss://relay.damus.io',
             'country_code': 'USA',
             'latitude': 37.78035,
@@ -130,10 +133,23 @@ class TestBiqQuery:
             'policy': {'read': True, 'write': True},
         }
 
-    def test_update_relays(self, discovered_relays):
+    def test_update_relays_1(self, discovered_relays_without_geo_location):
         client = bigquery.Client()
         relay_service = RelayService(client)
-        result = json.loads(
-            relay_service.update_relays(ConfigSettings.bq_dataset_id, discovered_relays)
+        current_time = time.time()
+        updated_name: str = f'updated_relay_name_at_{current_time}'
+        relays: list[Relay] = discovered_relays_without_geo_location
+        relays[0].relay_name = updated_name
+
+        result_1: Union[
+            RowIterator, _EmptyRowIterator, None
+        ] = relay_service.update_relays(ConfigSettings.bq_dataset_id, relays)
+        result_2: list[Any] = relay_service.get_relays()
+        updated_relay = next(
+            relay
+            for relay in result_2
+            if 'relay_name' in relay and relay['relay_name'] == updated_name
         )
-        assert result == []
+
+        assert type(result_1) == _EmptyRowIterator
+        assert updated_relay['relay_name'] == updated_name

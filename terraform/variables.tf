@@ -77,8 +77,7 @@ variable "relay_schema" {
 [
   {
     "name": "relay_name",
-    "type": "STRING",
-    "mode": "REQUIRED"
+    "type": "STRING"
   },
   {
     "name": "relay_url",
