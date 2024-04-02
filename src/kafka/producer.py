@@ -44,9 +44,9 @@ class NostrProducer(KafkaBase):
 
     def _delivery_report(self, err, msg):
         if err is not None:
-            print('Message delivery failed: {}'.format(err))
+            print(f'Message delivery failed: {err}')
         else:
-            print('Message delivered to {} [{}]'.format(msg.topic(), msg.partition()))
+            print(f'Message delivered to {msg.topic()} [{msg.partition()}]')
 
     def produce(self, topic_name: str, key: str, event_topic: EventTopic):
         key, ser_event_topic = self.serialise_key_topic(topic_name, key, event_topic)

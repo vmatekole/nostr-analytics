@@ -92,6 +92,7 @@ def event_bq_schema():
 
 @pytest.fixture(scope='class')
 def discovered_relays() -> list[Relay]:
+    ConfigSettings
     message_pool = MessagePool()
     relay1 = Relay(
         message_pool=message_pool,

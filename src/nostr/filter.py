@@ -35,14 +35,14 @@ class Filter:
         ] = None,  # The "#p" attr; list of pubkeys referenced in a "p" tag
         limit: int = None,
     ) -> None:
-        self.event_ids = event_ids
-        self.kinds = kinds
-        self.authors = authors
-        self.since = since
-        self.until = until
+        self.event_ids: list[str] = event_ids
+        self.kinds: list[EventKind] = kinds
+        self.authors: list[str] = authors
+        self.since: int = since
+        self.until: int = until
         self.event_refs = event_refs
         self.pubkey_refs = pubkey_refs
-        self.limit = limit
+        self.limit: int = limit
 
         self.tags = {}
         if self.event_refs:

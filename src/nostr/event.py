@@ -5,7 +5,7 @@ import json
 import time
 from enum import IntEnum
 from hashlib import sha256
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from pydantic import Field
 from pydantic.fields import FieldInfo
@@ -89,14 +89,6 @@ class Event(ModelBase):
     def pub_key(self) -> str:
         return self.pubkey
 
-    # def add_pubkey_ref(self, pubkey:str):
-    #     """ Adds a reference to a pubkey as a 'p' tag """
-    #     self.tags.append(['p', pubkey])
-
-    # def add_event_ref(self, event_id:str):
-    #     """ Adds a reference to an event_id as an 'e' tag """
-    #     self.tags.append(['e', event_id])
-
     def verify(self) -> bool:
         pass
 
@@ -119,7 +111,7 @@ class Event(ModelBase):
             ]
         )
 
-    def bq_dump(self):
+    def bq_dump(self) -> dict[str, Any]:
         event: dict[str, Any] = self.model_dump()
 
         bq_tag_repr = [

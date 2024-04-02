@@ -5,13 +5,13 @@ from pydantic import BaseModel
 class ModelBase(BaseModel):
     @classmethod
     def bq_schema(cls):
-        type_mapping: dict[type[str] | type[int] | type[bool], str] = {
+        type_mapping = {
             str: 'STRING',
             int: 'INT64',
             bool: 'BOOL',
         }
 
-        schema: List[bigquery.SchemaField] = [
+        schema: list[bigquery.SchemaField] = [
             bigquery.SchemaField(
                 name,
                 type_mapping.get(field.annotation, 'STRING'),

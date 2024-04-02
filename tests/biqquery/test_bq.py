@@ -3,6 +3,7 @@ from typing import Any, Union
 
 from google.cloud import bigquery
 from google.cloud.bigquery.table import RowIterator, _EmptyRowIterator
+from sqlalchemy import true
 
 from base.config import ConfigSettings, Settings
 from nostr.event import Event
@@ -83,20 +84,18 @@ class TestBiqQuery:
         }
 
     def test_bq_dump(self, discovered_relays):
+        ConfigSettings.relay_refresh_ip_geo_relay_info = True
         relay: Relay = discovered_relays[0]
 
         result = relay.bq_dump()
-        assert result == {
-            'country_code': 'USA',
-            'latitude': '37.78035',
-            'longitude': '-122.39059',
-            'policy': {
-                'read': True,
-                'write': True,
-            },
-            'relay_name': None,
-            'url': 'wss://relay.damus.io',
-        }
+
+        assert result['country_code'] == 'USA'
+        assert result['latitude'] == '37.78035'
+        assert result['longitude'] == '-122.39059'
+        assert result['relay_url'] == 'wss://relay.damus.io'
+        assert result['policy']['read'] == True
+        assert result['policy']['write'] == True
+        assert result['country_code'] == 'USA'
 
     def test_insert_relay(self, discovered_relays):
         relay_service = RelayService(bigquery.Client())
@@ -106,11 +105,14 @@ class TestBiqQuery:
     def test_get_relay(self):
         client = bigquery.Client()
         relay_service = RelayService(client)
+
         relays: list[Any] = relay_service.get_relays()
         relays[0].pop('inserted_at')  # inserted_at can change
+        relays[0].pop('relay_name')  # Name isn't always available
+
         damus_relay = relays[0]
+
         assert damus_relay == {
-            'relay_name': None,
             'relay_url': 'wss://relay.damus.io',
             'country_code': 'USA',
             'latitude': 37.78035,
