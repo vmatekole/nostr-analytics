@@ -11,10 +11,10 @@ Data on Decentralised social networks is sharded and distributed across multiple
 
 ## Tech Stack
 - Python Engine
-  - Data wrangling logic (Requesting prescribed [events](src/models/event.py) from relays)
+  - Data wrangling logic (Requesting prescribed [events](src/nostr/relay.py) from relays)
   - Data pipelines/workflows implemented in Prefect
-    - [Producer](src/models/kafka/producer.py) (retrieving events from [relays] via websockets)
-    - [Consumer](src/models/kafka/consumer.py) (persisting events to BigQuery)
+    - [Producer](src/kafka/producer.py) (retrieving events from [relays] via websockets)
+    - [Consumer](src/kafka/consumer.py) (persisting events to BigQuery)
 - Prefect for Orchestration
 - Apache Kafka for data streaming
 - BigQuery for Data Warehousing
@@ -38,4 +38,4 @@ Data on Decentralised social networks is sharded and distributed across multiple
 ## Usage
 
 ## Acknowledgements
-Thanks to [@jessthibault](https://github.com/jeffthibault) author of [python-nostr](https://github.com/jeffthibault/python-nostr) where the Nostr [base models](src/models/nostr/) were largely taken from and modified.
+Thanks to [@jessthibault](https://github.com/jeffthibault) author of [python-nostr](https://github.com/jeffthibault/python-nostr) where the Nostr [base models](src/nostr/) were largely taken from and modified.
