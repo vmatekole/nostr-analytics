@@ -1,6 +1,6 @@
 # Decentralised Social Networks
 
-A analytics/NLP engine for decentralised social networks.
+Analytics/NLP engine for decentralised social networks.
 
 ## Problem statement
 Data on Decentralised social networks is sharded and distributed across multiple nodes. Unlike blockchains there is no single source of truth. Decentralised analytics aims to provide a robust, architecture that allows for accurate analytics from decentralised networks such as Nostr and Farcaster.
