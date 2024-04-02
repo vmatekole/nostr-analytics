@@ -1,21 +1,5 @@
-from confluent_kafka.schema_registry import SchemaRegistryClient
 from google.cloud import bigquery
 from pydantic import BaseModel
-
-from config import Settings
-
-
-class KafkaBase:
-    def __init__(self) -> None:
-        self._config: Settings = Settings()
-
-        self._config
-        self._schema_registry_client = SchemaRegistryClient(
-            conf={
-                'url': self._config.kafka_schema_url,
-                'basic.auth.user.info': self._config.kafka_schema_auth_token,
-            }
-        )
 
 
 class ModelBase(BaseModel):

@@ -1,12 +1,12 @@
 import json
 from typing import Literal
 
-from analytics import Analytics
-from models.nostr.event import EventKind
-from models.nostr.filter import Filters
-from models.nostr.message_pool import EventMessage
-from models.nostr.relay import Relay
-from models.nostr.relay_manager import RelayManager
+from nostr.event import EventKind
+from nostr.filter import Filters
+from nostr.message_pool import EventMessage
+from nostr.relay import Relay
+from nostr.relay_manager import RelayManager
+from services.analytics import Analytics
 
 from .fixtures import (
     damus_relay,
@@ -60,7 +60,7 @@ class TestNostrNetwork:
 
         assert len(relays) >= 1000
 
-    def test_get_geo_location_info_for_a_relay(self, damus_relay):
+    def test_get_geo_location_info_for_a_relay(self, damus_relay: str):
         expected_result = {
             'calling_code': '+1',
             'city': 'San Francisco',
@@ -87,6 +87,4 @@ class TestNostrNetwork:
 
         result: Relay = relay_manager.relays[reliable_relay_url]
 
-        # assert result.ws.sock.connected == True
-
-        assert result.country == 'US'
+        assert result.country_code == 'USA'

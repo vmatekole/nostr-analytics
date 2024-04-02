@@ -9,7 +9,7 @@ from confluent_kafka.serialization import (
     StringSerializer,
 )
 
-from models.base import KafkaBase
+from kafka.schemas import KafkaBase
 
 from .schemas import EventTopic
 

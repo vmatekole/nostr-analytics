@@ -4,6 +4,10 @@ import time
 from dataclasses import dataclass
 from threading import Lock
 
+from google.cloud import bigquery
+
+from services import bq
+
 from .event import Event
 from .filter import Filters
 from .message_pool import MessagePool
@@ -18,9 +22,12 @@ class RelayException(Exception):
 @dataclass
 class RelayManager:
     def __post_init__(self):
+        client = bigquery.Client()
         self.relays: dict[str, Relay] = {}
         self.message_pool: MessagePool = MessagePool()
         self.lock: Lock = Lock()
+        self._bq_service = bq.RelayService(client)
+        self.discovered_relays = self._bq_service.get_relays()
 
     def add_relay(
         self,
@@ -30,6 +37,10 @@ class RelayManager:
         proxy_config: RelayProxyConnectionConfig = None,
     ):
         relay = Relay(url, self.message_pool, policy)
+
+        # Check if relay info available
+        #  if not refresh relay info
+        #  update relay_info
 
         with self.lock:
             self.relays[url] = relay

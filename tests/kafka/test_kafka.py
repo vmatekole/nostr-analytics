@@ -1,10 +1,10 @@
 import time
 
-from models.kafka.consumer import NostrConsumer
-from models.kafka.producer import NostrProducer
-from models.kafka.schemas import EventTopic
-from models.nostr.event import Event
-from utils import logger
+from base.utils import logger
+from kafka.consumer import NostrConsumer
+from kafka.producer import NostrProducer
+from kafka.schemas import EventTopic
+from nostr.event import Event
 
 from ..nostr.fixtures import event_input_data_1, event_input_data_2
 from .fixtures import kafka_event_topic

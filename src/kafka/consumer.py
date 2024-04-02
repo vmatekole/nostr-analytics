@@ -1,8 +1,4 @@
-from dataclasses import asdict
-from typing import Union
-
 from confluent_kafka import Consumer
-from confluent_kafka.schema_registry import SchemaRegistryClient
 from confluent_kafka.schema_registry.avro import AvroDeserializer
 from confluent_kafka.serialization import (
     MessageField,
@@ -10,10 +6,7 @@ from confluent_kafka.serialization import (
     StringDeserializer,
 )
 
-from config import Settings
-from models.base import KafkaBase
-
-from .schemas import EventTopic
+from kafka.schemas import KafkaBase
 
 
 class NostrConsumer(KafkaBase):

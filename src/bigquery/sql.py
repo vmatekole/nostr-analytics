@@ -1,5 +1,4 @@
-from config import ConfigSettings
-from models.nostr.relay import Relay
+from nostr.relay import Relay
 
 
 class RelaySQL:

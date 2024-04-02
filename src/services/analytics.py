@@ -1,19 +1,15 @@
 import json
 import random
-import socket
 import time
 from ast import Set
 from collections import namedtuple
-from dataclasses import asdict, dataclass
 
-import requests
-
-from config import ConfigSettings, Settings
-from models.nostr.event import EventKind
-from models.nostr.filter import Filter, Filters
-from models.nostr.message_pool import EventMessage
-from models.nostr.relay_manager import RelayManager
-from utils import logger
+from base.config import ConfigSettings, Settings
+from base.utils import logger
+from nostr.event import EventKind
+from nostr.filter import Filter, Filters
+from nostr.message_pool import EventMessage
+from nostr.relay_manager import RelayManager
 
 
 class Analytics:

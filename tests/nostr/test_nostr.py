@@ -1,16 +1,7 @@
 import json
-from typing import Literal
 
-from analytics import Analytics
-from config import Settings
-from models.kafka.producer import NostrProducer
-from models.kafka.schemas import EventTopic
-from models.nostr.event import Event, EventKind
-from models.nostr.filter import Filter, Filters
-from models.nostr.message_pool import EventMessage
-from models.nostr.relay import Relay
-from models.nostr.relay_manager import RelayManager
-from utils import logger
+from base.config import Settings
+from nostr.event import Event
 
 from .fixtures import (
     event_input_data_1,

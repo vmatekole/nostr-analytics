@@ -11,8 +11,8 @@ import requests
 from pydantic import ConfigDict
 from websocket import WebSocketApp
 
-from config import ConfigSettings, Settings
-from utils import logger
+from base.config import ConfigSettings, Settings
+from base.utils import logger
 
 from .event import Event
 from .filter import Filters

@@ -1,5 +1,5 @@
-from models.nostr.relay import Relay
-from models.sql import RelaySQL
+from bigquery.sql import RelaySQL
+from nostr.relay import Relay
 
 from .fixtures import discovered_relays
 

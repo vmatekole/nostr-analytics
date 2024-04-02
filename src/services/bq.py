@@ -1,15 +1,12 @@
 import json
-from time import sleep
 from typing import Any, Union
 
-from google.cloud import bigquery
-from google.cloud.bigquery.table import RowIterator, _EmptyRowIterator
+from google.cloud.bigquery.table import RowIterator
 
+from base.config import ConfigSettings, Settings
+from bigquery.sql import RelaySQL
 from client.bq import Bq
-from config import ConfigSettings, Settings
-from models.nostr.relay import Relay
-from models.sql import RelaySQL
-from utils import logger
+from nostr.relay import Relay
 
 
 class BqService:
@@ -44,7 +41,7 @@ class RelayService(BqService):
 
     def update_relays(
         self, dataset_id: str, relays: list[Relay]
-    ) -> Union[RowIterator, _EmptyRowIterator, None]:
+    ) -> Union[RowIterator, None]:
         query = RelaySQL.update_relays(dataset_id, relays)
         return self._bq.run_sql(query)
 

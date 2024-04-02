@@ -10,7 +10,7 @@ from typing import List, Optional
 from pydantic import Field
 from pydantic.fields import FieldInfo
 
-from models.base import ModelBase
+from nostr.base import ModelBase
 
 from .message_type import ClientMessageType
 

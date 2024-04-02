@@ -4,7 +4,7 @@ from google.api_core.exceptions import ClientError
 from google.cloud import bigquery
 from google.cloud.bigquery.table import RowIterator, _EmptyRowIterator
 
-from utils import logger
+from base.utils import logger
 
 
 class Bq:
@@ -31,7 +31,7 @@ class Bq:
         table_ref: bigquery.TableReference = bigquery.TableReference(
             bigquery.DatasetReference(project_id, dataset_id), table_id
         )
-        # bigquery.Table(table_ref, BaseBQModel.bq_schema())
+
         table = client.get_table(table_ref)
 
         rows_to_insert = []

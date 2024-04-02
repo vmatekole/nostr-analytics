@@ -1,9 +1,9 @@
 import pytest
 from google.cloud import bigquery
 
-from config import ConfigSettings
-from models.nostr.message_pool import MessagePool
-from models.nostr.relay import Relay
+from base.config import ConfigSettings
+from nostr.message_pool import MessagePool
+from nostr.relay import Relay
 
 
 @pytest.fixture(scope='class')
