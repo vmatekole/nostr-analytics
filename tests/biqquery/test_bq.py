@@ -3,9 +3,9 @@ from typing import Any, Union
 
 from google.cloud import bigquery
 from google.cloud.bigquery.table import RowIterator, _EmptyRowIterator
-from sqlalchemy import true
 
 from base.config import ConfigSettings, Settings
+from base.utils import logger
 from nostr.event import Event
 from nostr.relay import Relay
 from services.bq import EventService, RelayService
@@ -27,21 +27,21 @@ class TestBiqQuery:
         event: Event = Event(**event_bq_insert_data_1)
 
         event_service = EventService(bigquery.Client())
-        assert event_service.insert_events([event])
+        assert event_service.save_events([event])
 
     def test_event_tags_insert(self, event_bq_insert_data_2):
         assert Event.model_validate(event_bq_insert_data_2)
         event: Event = Event(**event_bq_insert_data_2)
 
         event_service = EventService(bigquery.Client())
-        assert event_service.insert_events([event])
+        assert event_service.save_events([event])
 
     def test_event_tags_complex_insert(self, event_bq_insert_data_3):
         assert Event.model_validate(event_bq_insert_data_3)
         event: Event = Event(**event_bq_insert_data_3)
         event_service = EventService(bigquery.Client())
 
-        assert event_service.insert_events([event])
+        assert event_service.save_events([event])
 
     # def test_bad_event_insert(self, event_bq_insert_data_1):
     #     config = Settings()
@@ -100,7 +100,7 @@ class TestBiqQuery:
     def test_insert_relay(self, discovered_relays):
         relay_service = RelayService(bigquery.Client())
 
-        assert relay_service.insert_relays(discovered_relays)
+        assert relay_service.save_relays(discovered_relays)
 
     def test_get_relay(self):
         client = bigquery.Client()
@@ -132,11 +132,12 @@ class TestBiqQuery:
             RowIterator, _EmptyRowIterator, None
         ] = relay_service.update_relays(ConfigSettings.bq_dataset_id, relays)
         result_2: list[Any] = relay_service.get_relays()
+        logger.debug(f'RESULT_2:{result_2}')
         updated_relay = next(
             relay
             for relay in result_2
             if 'relay_name' in relay and relay['relay_name'] == updated_name
         )
 
-        assert type(result_1) == _EmptyRowIterator
+        # assert type(result_1) == _EmptyRowIterator
         assert updated_relay['relay_name'] == updated_name

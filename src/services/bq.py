@@ -4,6 +4,7 @@ from typing import Any, Union
 from google.cloud.bigquery.table import RowIterator
 
 from base.config import ConfigSettings, Settings
+from base.utils import logger
 from bigquery.sql import RelaySQL
 from client.bq import Bq
 from nostr.relay import Relay
@@ -30,14 +31,12 @@ class RelayService(BqService):
         relays = json.loads(result[0][0])
         return relays
 
-    def insert_relays(self, relays: list[Relay]):
-        config: Settings = ConfigSettings
-        return self._bq.insert_to_bigquery(
-            relays,
-            config.gcp_project_id,
-            config.bq_dataset_id,
-            config.bq_relay_table_id,
+    def save_relays(self, relays: list[Relay]):
+        query = RelaySQL.insert_relays(
+            ConfigSettings.bq_dataset_id, ConfigSettings.bq_relay_table_id, relays
         )
+        logger.debug(query)
+        return self._bq.run_sql(query)
 
     def update_relays(
         self, dataset_id: str, relays: list[Relay]
@@ -50,7 +49,7 @@ class EventService(BqService):
     def __init__(self, client) -> None:
         super().__init__(client)
 
-    def insert_events(self, events):
+    def save_events(self, events):
         config: Settings = ConfigSettings
         return self._bq.insert_to_bigquery(
             events,

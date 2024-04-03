@@ -42,7 +42,11 @@ class Bq:
         # Insert rows into BigQuery table
         errors = client.insert_rows_json(table, rows_to_insert)
         if errors:
-            raise Exception(f'Errors occurred while inserting rows: {errors}')
+            err_msg = f'Errors occurred while inserting rows: {errors}'
+            logger.error(err_msg)
+            raise Exception(f'Errors occurred while inserting rows: {err_msg}')
         else:
-            logger.debug('All rows have been inserted successfully.')
+            logger.info(
+                f'All {len(objs)} rows of {table_ref.table_id} have been inserted successfully.'
+            )
             return True
