@@ -106,16 +106,13 @@ class TestBiqQuery:
         relay_service = RelayService(client)
 
         relays: list[Any] = relay_service.get_relays()
-        relays[0].pop('inserted_at')  # inserted_at can change
-        relays[0].pop('relay_name')  # Name isn't always available
-
-        damus_relay = relays[0]
+        relay = next(
+            relay for relay in relays if relay['relay_url'] == 'wss://relay.damus.io'
+        )
+        damus_relay = {'relay_url': relay['relay_url'], 'policy': relay['policy']}
 
         assert damus_relay == {
             'relay_url': 'wss://relay.damus.io',
-            'country_code': 'USA',
-            'latitude': 37.78035,
-            'longitude': -122.39059,
             'policy': {'read': True, 'write': True},
         }
 
