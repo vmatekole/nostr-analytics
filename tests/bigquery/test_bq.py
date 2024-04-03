@@ -9,7 +9,6 @@ from base.utils import logger
 from nostr.event import Event
 from nostr.relay import Relay
 from services.bq import EventService, RelayService
-from tests import biqquery
 
 from .fixtures import (
     discovered_relays,
@@ -132,7 +131,7 @@ class TestBiqQuery:
             RowIterator, _EmptyRowIterator, None
         ] = relay_service.update_relays(ConfigSettings.bq_dataset_id, relays)
         result_2: list[Any] = relay_service.get_relays()
-        logger.debug(f'RESULT_2:{result_2}')
+
         updated_relay = next(
             relay
             for relay in result_2

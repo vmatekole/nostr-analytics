@@ -38,8 +38,8 @@ class TestSQL:
         assert self.normalise_string(query) == self.normalise_string(
             '''
             INSERT INTO `test_event.relay` (relay_name, relay_url, country_code, latitude, longitude, policy)
-            VALUES ('None', 'wss://relay.damus.io', 'USA', 37.78035, -122.39059, STRUCT(True AS read, True AS write)),
-                   ('None', 'wss://nostr.wine', 'USA', 37.78035, -122.39059, STRUCT(True AS read, True AS write)),
-                   ('None', 'wss://nostr.t-rg.ws', 'LUX', 49.79022, 6.08557, STRUCT(True AS read, True AS write))
+            VALUES (NULL, 'wss://relay.damus.io', 'USA', 37.78035, -122.39059, STRUCT(True AS read, True AS write)),
+                   (NULL, 'wss://nostr.wine', 'USA', 37.78035, -122.39059, STRUCT(True AS read, True AS write)),
+                   (NULL, 'wss://nostr.t-rg.ws', 'LUX', 49.79022, 6.08557, STRUCT(True AS read, True AS write))
         '''
         )

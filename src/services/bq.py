@@ -35,7 +35,6 @@ class RelayService(BqService):
         query = RelaySQL.insert_relays(
             ConfigSettings.bq_dataset_id, ConfigSettings.bq_relay_table_id, relays
         )
-        logger.debug(query)
         return self._bq.run_sql(query)
 
     def update_relays(
