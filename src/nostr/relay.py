@@ -226,8 +226,10 @@ class Relay:
                     data=json.dumps(ip_addresses),
                     headers={'Content-Type': 'application/json'},
                 )
-
-                result.append(response.json())
+                if response.status_code == 200:
+                    result.append(response.json())
+                else:
+                    response.raise_for_status()
             except requests.HTTPError:
                 logger.error(
                     f'Unable to call{config.ip_geolocation_url} for ip address {ip}'

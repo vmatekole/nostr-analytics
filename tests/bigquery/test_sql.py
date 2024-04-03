@@ -19,7 +19,7 @@ class TestSQL:
 
         assert self.normalise_string(query) == self.normalise_string(
             '''UPDATE `test_event.relay`
-                            SET relay_name = NULL,
+                            SET relay_name = null,
                             country_code= 'USA',
                             latitude = 37.78035,
                             longitude = -122.39059,

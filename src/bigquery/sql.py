@@ -45,8 +45,8 @@ class RelaySQL:
                 query
                 + f"""
                 UPDATE `{dataset_id}.relay`
-                SET relay_name = '{relay.relay_name}',
-                    country_code = '{relay.country_code}',
+                SET relay_name = {RelaySQL.handle_null_str(relay.relay_name)},
+                    country_code = {RelaySQL.handle_null_str(relay.country_code)},
                     latitude = {relay.latitude},
                     longitude = {relay.longitude},
                     policy.write = {relay.policy.should_read},
