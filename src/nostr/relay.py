@@ -24,8 +24,8 @@ from .subscription import Subscription
 class RelayPolicy:
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    should_read: bool = True
-    should_write: bool = True
+    should_read: bool = False
+    should_write: bool = False
 
     def to_json_object(self) -> dict[str, bool]:
         return {'read': self.should_read, 'write': self.should_write}
@@ -43,9 +43,9 @@ class RelayProxyConnectionConfig:
 @dataclass
 class Relay:
     url: str
-    message_pool: MessagePool
     policy: RelayPolicy = RelayPolicy()
-    relay_name: str = None
+    message_pool: MessagePool = None
+    name: str = None
     ssl_options: Optional[dict] = None
     proxy_config: RelayProxyConnectionConfig = None
     country_code: str = None
@@ -63,14 +63,18 @@ class Relay:
         self.reconnect: bool = True
         self.error_counter: int = 0
         self.error_threshold: int = 0
-        self.lock: Lock = Lock()
-        self.ws: WebSocketApp = WebSocketApp(
-            self.url,
-            on_open=self._on_open,
-            on_message=self._on_message,
-            on_error=self._on_error,
-            on_close=self._on_close,
-        )
+
+        if (
+            self.message_pool
+        ):  # TODO: A bit hacky. For some analytics purposes we don't want to connect to the relay.
+            self.lock: Lock = Lock()
+            self.ws: WebSocketApp = WebSocketApp(
+                self.url,
+                on_open=self._on_open,
+                on_message=self._on_message,
+                on_error=self._on_error,
+                on_close=self._on_close,
+            )
 
         if ConfigSettings.relay_refresh_ip_geo_relay_info:
             self.refresh_geo_ip_info()
@@ -197,8 +201,8 @@ class Relay:
 
     def bq_dump(self):
         return {
-            'relay_url': self.url,
-            'relay_name': self.relay_name or '',
+            'url': self.url,
+            'name': self.name or '',
             'country_code': self.country_code,
             'latitude': self.latitude,
             'longitude': self.longitude,

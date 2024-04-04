@@ -46,7 +46,7 @@ class TestKafkaProducer:
             nostr_producer.produce(
                 topic_name=topic_name, key=key, event_topic=event_topic
             )
-            nostr_producer._delivery_report.assert_called_once()
+            nostr_producer._delivery_report.assert_called_once()  # type: ignore
 
             assert True
         except Exception:

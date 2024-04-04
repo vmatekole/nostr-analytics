@@ -29,8 +29,8 @@ class Analytics:
         if len(relay_seeds) > MAX_RELAYS:
             raise Exception('#fgnj288: Max seeds is 20')
 
-        for relay in relay_seeds:
-            self._relay_manager.add_relay(relay)
+        for relay_url in relay_seeds:
+            self._relay_manager.add_relay(relay_url)
 
         self._relay_manager.add_subscription_on_all_relays(id='foo', filters=filters)
         time.sleep(1.25)
@@ -44,7 +44,7 @@ class Analytics:
 
                 if (
                     event_msg.event.content == ''
-                ):  # if the relay doesn't have a  follow list try the next one
+                ):  # if the relay doesn't have a follow list try the next one
                     continue
 
                 try:
@@ -58,14 +58,15 @@ class Analytics:
                     )
                     continue
 
-                for url, relay in discovered_relays.items():
+                for url, relay_url in discovered_relays.items():
                     self._found_relays.add(url)
             else:
                 self._relay_manager.remove_all_relays()  # if we have gotten contact list of currently connected relays. Close current connecions
-                for relay in random.sample(
+                for relay_url in random.sample(
                     list(self._found_relays), ConfigSettings.max_connected_relays
                 ):
-                    self._relay_manager.add_relay(url=relay)
+                    self._relay_manager.add_relay(url=relay_url)
+
                 self._relay_manager.add_subscription_on_all_relays(
                     'foo', filters=filters
                 )
@@ -78,4 +79,5 @@ class Analytics:
 
         # Cleanup
         self.close()
+
         return self._found_relays

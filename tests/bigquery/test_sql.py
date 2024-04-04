@@ -19,13 +19,13 @@ class TestSQL:
 
         assert self.normalise_string(query) == self.normalise_string(
             '''UPDATE `test_event.relay`
-                            SET relay_name = NULL,
+                            SET name = NULL,
                             country_code= 'USA',
                             latitude = 37.78035,
                             longitude = -122.39059,
                             policy.write = True,
                             policy.read = True
-                            WHERE relay_url = 'wss://relay.damus.io';
+                            WHERE url = 'wss://relay.damus.io';
             '''
         )
 
@@ -37,7 +37,7 @@ class TestSQL:
 
         assert self.normalise_string(query) == self.normalise_string(
             '''
-            INSERT INTO `test_event.relay` (relay_name, relay_url, country_code, latitude, longitude, policy)
+            INSERT INTO `test_event.relay` (name, url, country_code, latitude, longitude, policy)
             VALUES (NULL, 'wss://relay.damus.io', 'USA', 37.78035, -122.39059, STRUCT(True AS read, True AS write)),
                    (NULL, 'wss://nostr.wine', 'USA', 37.78035, -122.39059, STRUCT(True AS read, True AS write)),
                    (NULL, 'wss://nostr.t-rg.ws', 'LUX', 49.79022, 6.08557, STRUCT(True AS read, True AS write))

@@ -53,6 +53,11 @@ def expected_event_obj_3():
 
 
 @pytest.fixture(scope='class')
+def damus_relay_url() -> Literal['wss://relay.damus.io']:
+    return 'wss://relay.damus.io'
+
+
+@pytest.fixture(scope='class')
 def reliable_relay_url() -> Literal['wss://relay.damus.io']:
     return 'wss://relay.damus.io'
 

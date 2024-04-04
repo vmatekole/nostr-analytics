@@ -1,13 +1,13 @@
 import json
 from typing import Any, Union
 
-from google.cloud.bigquery.table import RowIterator
+from google.cloud.bigquery.table import Row, RowIterator
 
 from base.config import ConfigSettings, Settings
 from base.utils import logger
 from bigquery.sql import RelaySQL
 from client.bq import Bq
-from nostr.relay import Relay
+from nostr.relay import Relay, RelayPolicy
 
 
 class BqService:
@@ -20,6 +20,26 @@ class RelayService(BqService):
     def __init__(self, client) -> None:
         super().__init__(client)
 
+    def _parse_relays(self, result):
+        relays = json.loads(
+            result[0][0]
+        )  # for RelaySQL.select_all_from  a single row of a json array of relays is returned
+
+        relay_objs = []
+        for r in relays:
+            relay_objs.append(
+                Relay(
+                    url=r['url'],
+                    policy=RelayPolicy(r['policy']['read'], r['policy']['write']),
+                    name=r['name'],
+                    country_code=r['country_code'],
+                    latitude=r['latitude'],
+                    longitude=r['longitude'],
+                )
+            )
+
+        return relay_objs
+
     def get_relays(self) -> list[Any]:
         result = list(
             self._bq.run_sql(
@@ -28,7 +48,8 @@ class RelayService(BqService):
                 )
             )
         )
-        relays = json.loads(result[0][0])
+
+        relays = self._parse_relays(result) if result else []
         return relays
 
     def save_relays(self, relays: list[Relay]):

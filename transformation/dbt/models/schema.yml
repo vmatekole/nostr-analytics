@@ -4,7 +4,7 @@ version: 2
 models:
   - name: relay_location
     columns:
-      - name: relay_url
+      - name: url
         description: "The URL of the relay"
         tests:
           - not_null

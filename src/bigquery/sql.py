@@ -13,7 +13,7 @@ class RelaySQL:
     @staticmethod
     def insert_relays(dataset_id: str, table_id: str, relays: list[Relay]) -> str:
         relays_to_insert = [
-            f'''({RelaySQL.handle_null_str(relay.relay_name)},
+            f'''({RelaySQL.handle_null_str(relay.name)},
                 {RelaySQL.handle_null_str(relay.url)},
                 {RelaySQL.handle_null_str(relay.country_code)},
                 {relay.latitude}, {relay.longitude}, STRUCT({relay.policy.should_read} AS read, {relay.policy.should_write} AS write))\n'''
@@ -22,7 +22,7 @@ class RelaySQL:
         relays_str = ' ,'.join(relays_to_insert)
 
         query: str = f'''
-                    INSERT INTO `{dataset_id}.{table_id}` (relay_name, relay_url, country_code, latitude, longitude, policy)\n
+                    INSERT INTO `{dataset_id}.{table_id}` (name, url, country_code, latitude, longitude, policy)\n
                     VALUES {relays_str}
                 '''
         query = RelaySQL.replace_none_with_null(query)
@@ -45,13 +45,13 @@ class RelaySQL:
                 query
                 + f"""
                 UPDATE `{dataset_id}.relay`
-                SET relay_name = {RelaySQL.handle_null_str(relay.relay_name)},
+                SET name = {RelaySQL.handle_null_str(relay.name)},
                     country_code = {RelaySQL.handle_null_str(relay.country_code)},
                     latitude = {relay.latitude},
                     longitude = {relay.longitude},
                     policy.write = {relay.policy.should_read},
                     policy.read = {relay.policy.should_write}
-                WHERE relay_url = '{relay.url}'; \n\n"""
+                WHERE url = '{relay.url}'; \n\n"""
             )
 
         query = RelaySQL.replace_none_with_null(query)

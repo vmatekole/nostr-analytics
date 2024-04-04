@@ -9,7 +9,7 @@
 ) }}
 
 with relay_location as (
-    SELECT relay_url, country_code, CONCAT(latitude, ',', longitude) AS location, CURRENT_TIMESTAMP() as inserted_at, policy.read, policy.write
+    SELECT url, country_code, CONCAT(latitude, ',', longitude) AS location, CURRENT_TIMESTAMP() as inserted_at, policy.read, policy.write
     FROM`nostr_production_data.relay`
 
 )

@@ -7,7 +7,7 @@ from google.cloud.bigquery.table import RowIterator, _EmptyRowIterator
 from base.config import ConfigSettings, Settings
 from base.utils import logger
 from nostr.event import Event
-from nostr.relay import Relay
+from nostr.relay import Relay, RelayPolicy
 from services.bq import EventService, RelayService
 
 from .fixtures import (
@@ -91,7 +91,7 @@ class TestBiqQuery:
         assert result['country_code'] == 'USA'
         assert result['latitude'] == '37.78035'
         assert result['longitude'] == '-122.39059'
-        assert result['relay_url'] == 'wss://relay.damus.io'
+        assert result['url'] == 'wss://relay.damus.io'
         assert result['policy']['read'] == True
         assert result['policy']['write'] == True
         assert result['country_code'] == 'USA'
@@ -102,27 +102,37 @@ class TestBiqQuery:
         assert relay_service.save_relays(discovered_relays)
 
     def test_get_relay(self):
-        client = bigquery.Client()
-        relay_service = RelayService(client)
 
-        relays: list[Any] = relay_service.get_relays()
-        relay = next(
-            relay for relay in relays if relay['relay_url'] == 'wss://relay.damus.io'
+        relay_name = f'test-ran{time.time()}'
+        relay = Relay(
+            name=relay_name,
+            url='wss://test_relay_is_added.wine',
         )
-        damus_relay = {'relay_url': relay['relay_url'], 'policy': relay['policy']}
 
-        assert damus_relay == {
-            'relay_url': 'wss://relay.damus.io',
-            'policy': {'read': True, 'write': True},
+        relay_service = RelayService(bigquery.Client())
+
+        relay_service.save_relays([relay])
+
+        relays: list[Relay] = relay_service.get_relays()
+
+        assert relays
+
+        relay: Relay = next(relay for relay in relays if relay.name == relay_name)
+
+        wine_relay = {'name': relay.name, 'policy': relay.policy}
+
+        assert wine_relay == {
+            'name': relay_name,
+            'policy': RelayPolicy(should_read=False, should_write=False),
         }
 
     def test_update_relays_1(self, discovered_relays_without_geo_location):
         client = bigquery.Client()
         relay_service = RelayService(client)
         current_time = time.time()
-        updated_name: str = f'updated_relay_name_at_{current_time}'
+        updated_name: str = f'updated_name_at_{current_time}'
         relays: list[Relay] = discovered_relays_without_geo_location
-        relays[0].relay_name = updated_name
+        relays[0].name = updated_name
 
         result_1: Union[
             RowIterator, _EmptyRowIterator, None
@@ -132,8 +142,8 @@ class TestBiqQuery:
         updated_relay = next(
             relay
             for relay in result_2
-            if 'relay_name' in relay and relay['relay_name'] == updated_name
+            if 'name' in relay and relay['name'] == updated_name
         )
 
         # assert type(result_1) == _EmptyRowIterator
-        assert updated_relay['relay_name'] == updated_name
+        assert updated_relay['name'] == updated_name

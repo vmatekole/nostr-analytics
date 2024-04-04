@@ -76,11 +76,11 @@ variable "relay_schema" {
   default = <<EOF
 [
   {
-    "name": "relay_name",
+    "name": "name",
     "type": "STRING"
   },
   {
-    "name": "relay_url",
+    "name": "url",
     "type": "STRING",
     "mode": "REQUIRED"
   },

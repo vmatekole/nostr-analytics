@@ -9,6 +9,7 @@ from nostr.relay_manager import RelayManager
 
 from .fixtures import (
     damus_relay,
+    damus_relay_url,
     event_input_data_1,
     event_input_data_2,
     event_input_data_3,
@@ -79,3 +80,12 @@ class TestNostrNetwork:
         result: Relay = relay_manager.relays[reliable_relay_url]
 
         assert result.country_code == 'USA'
+
+    def test_relay_manager_does_not_duplicate_to_db(self, mocker, damus_relay_url):
+        relay_manager: RelayManager = RelayManager()
+
+        mocked_relay_service = mocker.patch('services.bq.RelayService.save_relays')
+        relay_manager.add_relay(damus_relay_url)
+
+        mocked_relay_service.save_relays.assert_not_called()  # type: ignore
+        relay_manager.close_all_relay_connections()

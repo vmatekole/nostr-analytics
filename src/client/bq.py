@@ -1,4 +1,5 @@
 from typing import Union
+from unittest import result
 
 from google.api_core.exceptions import ClientError
 from google.cloud import bigquery
@@ -14,12 +15,19 @@ class Bq:
     def run_sql(
         self,
         query,
-    ) -> Union[RowIterator, _EmptyRowIterator, None]:
+    ):
         job_config = bigquery.QueryJobConfig()
 
         query_job: bigquery.QueryJob = self._client.query(query, job_config=job_config)
         try:
-            return query_job.result()
+            result: RowIterator | _EmptyRowIterator = query_job.result()
+            # logger.debug(f'NUM: {list(result)[0][0]}')
+            if result.num_dml_affected_rows and result.num_dml_affected_rows > 0:
+                return result.num_dml_affected_rows
+            elif result.total_rows > 0:
+                return result
+            else:
+                return []
         except ClientError as e:
             logger.error(f'Bigquery ERROR(#uyu7j): {e}')
 
