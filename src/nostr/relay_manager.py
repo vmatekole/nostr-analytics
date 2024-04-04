@@ -6,6 +6,7 @@ from threading import Lock
 
 from google.cloud import bigquery
 
+from base.utils import logger
 from services import bq
 
 from .event import Event
@@ -23,17 +24,17 @@ class RelayException(Exception):
 class RelayManager:
     def __post_init__(self):
         client = bigquery.Client()
+        self._bq_service = bq.RelayService(client)
         self.relays: dict[str, Relay] = {}
         self.message_pool: MessagePool = MessagePool()
         self.lock: Lock = Lock()
-        self._bq_service = bq.RelayService(client)
         self.discovered_relays = self._bq_service.get_relays()
 
     def add_relay(
         self,
         url: str,
         policy: RelayPolicy = RelayPolicy(),
-        ssl_options: dict = None,
+        ssl_options=None,
         proxy_config: RelayProxyConnectionConfig = None,
     ):
         relay = Relay(url, self.message_pool, policy)
@@ -50,7 +51,6 @@ class RelayManager:
         threading.Thread(
             target=relay.queue_worker, name=f'{relay.url}-queue', daemon=True
         ).start()
-
         time.sleep(1)
 
     def remove_relay(self, url: str):

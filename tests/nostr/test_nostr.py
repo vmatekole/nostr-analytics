@@ -9,7 +9,6 @@ from .fixtures import (
     event_input_data_3,
     expected_bytes_for_input_data_1,
     expected_event_obj_3,
-    expected_min_num_relays_10,
     expected_sig_for_input_data_1,
     kafka_event_topic,
     relay_seed_urls,

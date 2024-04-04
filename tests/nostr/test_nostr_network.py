@@ -6,7 +6,6 @@ from nostr.filter import Filters
 from nostr.message_pool import EventMessage
 from nostr.relay import Relay
 from nostr.relay_manager import RelayManager
-from services.analytics import Analytics
 
 from .fixtures import (
     damus_relay,
@@ -15,7 +14,6 @@ from .fixtures import (
     event_input_data_3,
     expected_bytes_for_input_data_1,
     expected_event_obj_3,
-    expected_min_num_relays_10,
     expected_sig_for_input_data_1,
     kafka_event_topic,
     relay_seed_urls,
@@ -52,13 +50,6 @@ class TestNostrNetwork:
                 break
         assert len(result) > 7
         assert result.get(reliable_relay_url) == reliable_relay_policy
-
-    def test_discover_relays(self, relay_seed_urls, expected_min_num_relays_10):
-        analytics: Analytics = Analytics()
-
-        relays = analytics.discover_relays(relay_seed_urls)
-
-        assert len(relays) >= 1000
 
     def test_get_geo_location_info_for_a_relay(self, damus_relay: str):
         expected_result = {

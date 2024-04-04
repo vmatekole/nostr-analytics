@@ -60,14 +60,16 @@ class MessagePool:
         if message_type == RelayMessageType.EVENT:
             subscription_id = message_json[1]
             e = message_json[2]
+
             event = Event(
-                e['content'],
-                e['pubkey'],
-                e['created_at'],
-                e['kind'],
-                e['tags'],
-                e['sig'],
+                content=e['content'],
+                pubkey=e['pubkey'],
+                created_at=e['created_at'],
+                kind=e['kind'],
+                tags=e['tags'],
+                sig=e['sig'],
             )
+
             with self.lock:
                 if not event.id in self._unique_events:
                     self.events.put(EventMessage(event, subscription_id, url))

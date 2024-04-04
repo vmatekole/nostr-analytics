@@ -2,7 +2,6 @@ import json
 import socket
 import time
 from dataclasses import dataclass
-from email import policy
 from queue import Queue
 from threading import Lock
 from typing import Optional
