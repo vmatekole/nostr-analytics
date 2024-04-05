@@ -45,6 +45,11 @@ class Analytics:
     def close(self) -> None:
         self._relay_manager.close_all_relay_connections()
 
+        """_summary_
+        """
+        # TODO I think using the relay manager to discover relays isn't necessary and sub-optimal. We should look to use the short lived  — from websocket import create_connection
+        #
+
     def discover_relays(
         self, relay_seeds: list[str], min_relays_to_find: int = 1000
     ) -> Set[str]:
@@ -62,11 +67,11 @@ class Analytics:
         time.sleep(1.25)
 
         while len(self._alive_relays) < min_relays_to_find:
-            if (
-                self._relay_manager.message_pool.has_events()
-            ):  # Find better way of getting events
+            if self._relay_manager.message_pool.has_events():
                 event_msg: EventMessage = self._relay_manager.message_pool.get_event()
                 logger.debug(f'Got response:{event_msg.url}')
+                # Update bq with latest relay info
+                self._upsert_relay_info(Relay(url=event_msg.url))
 
                 if (
                     event_msg.event.content == ''
@@ -78,16 +83,14 @@ class Analytics:
                         '\"', '"'
                     )  # Sometimes we get double-encode json strings
                     discovered_relays = json.loads(json_decoded)
+                    for url, _ in discovered_relays.items():
+                        self._found_relays_urls.add(url)
+
                 except json.JSONDecodeError:
                     logger.exception(
                         f'Couldn\'t parse contact list of node {event_msg.url}'
                     )
                     continue
-
-                self._upsert_relay_info(Relay(url=event_msg.url))
-
-                for url, _ in discovered_relays.items():
-                    self._found_relays_urls.add(url)
             else:
                 # if we have gotten contact list of currently connected relays. Close current connecions
 
