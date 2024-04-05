@@ -21,6 +21,9 @@ class RelayService(BqService):
         super().__init__(client)
 
     def _parse_relays(self, result):
+        if not result[0][0]:
+            return []
+
         relays = json.loads(
             result[0][0]
         )  # for RelaySQL.select_all_from  a single row of a json array of relays is returned

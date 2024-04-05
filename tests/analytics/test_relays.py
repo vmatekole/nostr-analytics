@@ -5,7 +5,7 @@ from .fixtures import expected_min_num_relays_10
 
 
 class TestAnalyticsRelay:
-    def test_discover_10_relays(
+    def test_discover_relays(
         self, relay_seed_urls: list[str], expected_min_num_relays_10: int
     ):
         analytics: Analytics = Analytics()
@@ -14,4 +14,4 @@ class TestAnalyticsRelay:
             relay_seed_urls,
         )
 
-        assert len(relays) >= 10
+        assert len(relays) >= 1000

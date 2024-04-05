@@ -29,17 +29,6 @@ class RelayManager:
         self.message_pool: MessagePool = MessagePool()
         self.lock: Lock = Lock()
 
-        self.discovered_relays: list[Relay] = self._bq_service.get_relays()
-
-    def _upsert_relay_info(self, relay: Relay):
-        bq_service = self._bq_service
-        relay = next(
-            relay for relay in self.discovered_relays if relay.url == relay.url
-        )
-
-        if not relay:
-            bq_service.save_relays([relay])
-
     def add_relay(
         self,
         url: str,
@@ -48,8 +37,6 @@ class RelayManager:
         proxy_config: RelayProxyConnectionConfig = None,
     ):
         relay = Relay(url, policy=policy, message_pool=self.message_pool)
-
-        self._upsert_relay_info(relay)
 
         with self.lock:
             self.relays[url] = relay

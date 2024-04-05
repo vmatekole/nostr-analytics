@@ -1,4 +1,5 @@
 import json
+import re
 from queue import Queue
 from threading import Lock
 
@@ -57,6 +58,11 @@ class MessagePool:
     def _process_message(self, message: str, url: str):
         message_json = json.loads(message)
         message_type = message_json[0]
+        clean_url: str = re.sub(
+            r'\s+', '', url
+        )  # Sometimes we get whitespace is in the url
+        url = clean_url
+
         if message_type == RelayMessageType.EVENT:
             subscription_id = message_json[1]
             e = message_json[2]

@@ -24,7 +24,7 @@ from .subscription import Subscription
 class RelayPolicy:
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    should_read: bool = False
+    should_read: bool = True
     should_write: bool = False
 
     def to_json_object(self) -> dict[str, bool]:
