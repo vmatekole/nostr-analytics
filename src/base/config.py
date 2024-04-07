@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     ip_geolocation_key: str
     relay_refresh_ip_geo_relay_info: bool
     max_connected_relays: int
+    test_without_internet: bool
 
 
 ConfigSettings = Settings()

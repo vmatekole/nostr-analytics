@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 from logging import Logger
 
 from dotenv import load_dotenv
@@ -22,6 +23,10 @@ def init() -> Logger:
         rootLogger.addHandler(hdlr)
         hdlr.setFormatter(logFormatter)
     return rootLogger
+
+
+def normalise_string(query: str):
+    return re.sub(r'[\s\t]+', '', query)
 
 
 logger: Logger = init()

@@ -1,10 +1,12 @@
 import json
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from threading import Lock
 
 from google.cloud import bigquery
+from pydantic import ValidationError
 
 from base.utils import logger
 from services import bq
@@ -28,42 +30,53 @@ class RelayManager:
         self.relays: dict[str, Relay] = {}
         self.message_pool: MessagePool = MessagePool()
         self.lock: Lock = Lock()
+        self.executor = ThreadPoolExecutor(
+            max_workers=100
+        )  # Adjust the max_workers as needed
 
     def add_relay(
         self,
         url: str,
         policy: RelayPolicy = RelayPolicy(),
+        reconnect: bool = True,
         ssl_options=None,
         proxy_config: RelayProxyConnectionConfig = None,
     ):
-        relay = Relay(url, policy=policy, message_pool=self.message_pool)
+        try:
+            relay = Relay(
+                url, policy=policy, message_pool=self.message_pool, reconnect=reconnect
+            )
+        except ValidationError as e:
+            logger.exception(f'#kjhkjh8: Invalid relay url {e}')
+            raise
 
         with self.lock:
             self.relays[url] = relay
 
-        threading.Thread(target=relay.connect, name=f'{relay.url}-thread').start()
+        self.executor.submit(relay.connect)
+        if reconnect:  # Normal operation: resilient long-running connections
+            self.executor.submit(relay.queue_worker)
+        else:  # For verification of relay only
+            self.executor.submit(relay.verify_relay)
 
-        threading.Thread(
-            target=relay.queue_worker, name=f'{relay.url}-queue', daemon=True
-        ).start()
         time.sleep(1)
 
     def remove_relay(self, url: str):
         with self.lock:
             if url in self.relays:
-                relay = self.relays.pop(url)
+                relay: Relay = self.relays.pop(url)
                 relay.close()
 
     def remove_all_relays(self):
         with self.lock:
             for relay in list(self.relays.items()):
-                relay = self.relays.pop(relay[0])
+                relay: Relay = self.relays.pop(relay[0])
                 relay.close()
 
     def add_subscription_on_relay(self, url: str, id: str, filters: Filters):
         with self.lock:
             if url in self.relays:
-                relay = self.relays[url]
+                relay: Relay = self.relays[url]
                 if not relay.policy.should_read:
                     raise RelayException(
                         f'Could not send request: {url} is not configured to read from'
@@ -85,7 +98,7 @@ class RelayManager:
     def close_subscription_on_relay(self, url: str, id: str):
         with self.lock:
             if url in self.relays:
-                relay = self.relays[url]
+                relay: Relay = self.relays[url]
                 relay.close_subscription(id)
                 relay.publish(json.dumps(['CLOSE', id]))
             else:
@@ -100,7 +113,7 @@ class RelayManager:
     def close_all_relay_connections(self):
         with self.lock:
             for url in self.relays:
-                relay = self.relays[url]
+                relay: Relay = self.relays[url]
                 relay.close()
 
     def publish_event(self, event: Event):

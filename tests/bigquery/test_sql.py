@@ -1,7 +1,5 @@
-import re
-
 from base.config import ConfigSettings, Settings
-from base.utils import logger
+from base.utils import normalise_string
 from bigquery.sql import RelaySQL
 from nostr.relay import Relay
 
@@ -9,15 +7,12 @@ from .fixtures import discovered_relays
 
 
 class TestSQL:
-    def normalise_string(self, query: str):
-        return re.sub(r'\s+', '', query)
-
     def test_update_relays_sql(self, discovered_relays: list[Relay]):
         config: Settings = ConfigSettings
 
         query = RelaySQL.update_relays(config.bq_dataset_id, [discovered_relays[0]])
 
-        assert self.normalise_string(query) == self.normalise_string(
+        assert normalise_string(query) == normalise_string(
             '''UPDATE `test_event.relay`
                             SET name = NULL,
                             country_code= 'USA',

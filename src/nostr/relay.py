@@ -4,11 +4,12 @@ import time
 from dataclasses import dataclass
 from queue import Queue
 from threading import Lock
-from typing import Optional
+from typing import Annotated, Optional
 
 import requests
-from pydantic import ConfigDict
-from websocket import WebSocketApp
+from pydantic import BaseModel, ConfigDict, UrlConstraints, ValidationError
+from pydantic_core import Url
+from websocket import WebSocketApp, WebSocketException
 
 from base.config import ConfigSettings, Settings
 from base.utils import logger
@@ -18,6 +19,15 @@ from .filter import Filters
 from .message_pool import MessagePool
 from .message_type import RelayMessageType
 from .subscription import Subscription
+
+WssUrl = Annotated[
+    Url,
+    UrlConstraints(max_length=2083, allowed_schemes=['wss', 'ws']),
+]
+
+
+class UrlValidation(BaseModel):
+    url: WssUrl
 
 
 @dataclass
@@ -52,15 +62,25 @@ class Relay:
     latitude: float = None
     longitude: float = None
     connected: bool = False
+    reconnect: bool = True
     ws: WebSocketApp = None
     # log_to_kafka: bool
 
+    def _validate_url(self, url: str):
+        UrlValidation(url=url)
+
     def __post_init__(self):
+        try:
+            url: str = self.url.lower()
+            url = url.strip()
+            self._validate_url(url)
+        except ValidationError:
+            raise
+
         self.queue = Queue()
         self.subscriptions: dict[str, Subscription] = {}
         self.num_sent_events: int = 0
         self.connected: bool = False
-        self.reconnect: bool = True
         self.error_counter: int = 0
         self.error_threshold: int = 0
 
@@ -92,7 +112,8 @@ class Relay:
         self.connected = False
         self.error_counter += 1
         if self.error_threshold and self.error_counter > self.error_threshold:
-            pass
+            logger.error(f'Unable to connect to ${self.url}. Disconnecting!')
+            # self.close()
         else:
             self.check_reconnect()
 
@@ -135,18 +156,22 @@ class Relay:
         return True
 
     def connect(self):
-        self.ws.run_forever(
-            sslopt=self.ssl_options,
-            http_proxy_host=self.proxy_config.host
-            if self.proxy_config is not None
-            else None,
-            http_proxy_port=self.proxy_config.port
-            if self.proxy_config is not None
-            else None,
-            proxy_type=self.proxy_config.type
-            if self.proxy_config is not None
-            else None,
-        )
+        try:
+            self.ws.run_forever(
+                sslopt=self.ssl_options,
+                http_proxy_host=self.proxy_config.host
+                if self.proxy_config is not None
+                else None,
+                http_proxy_port=self.proxy_config.port
+                if self.proxy_config is not None
+                else None,
+                proxy_type=self.proxy_config.type
+                if self.proxy_config is not None
+                else None,
+            )
+        except Exception as e:
+            logger.exception(f'#kik9: {e}  url:{self.url}')
+            self.close()
 
     def close(self):
         self.ws.close()
@@ -173,6 +198,21 @@ class Relay:
                     self.num_sent_events += 1
                 except:
                     self.queue.put(message)
+            else:
+                time.sleep(0.1)
+
+    def verify_relay(self):
+        while True:
+            if self.connected and self.num_sent_events == 0:
+                message = self.queue.get()
+                try:
+                    self.ws.send(message)
+                    self.num_sent_events += 1
+                except:
+                    self.queue.put(message)
+            elif not self.connected and self.num_sent_events >= 1:
+                logger.debug(f'Ending queue worker: {self.url}')
+                return True
             else:
                 time.sleep(0.1)
 
