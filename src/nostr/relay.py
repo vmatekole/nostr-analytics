@@ -12,7 +12,7 @@ from pydantic_core import Url
 from websocket import WebSocketApp, WebSocketException
 
 from base.config import ConfigSettings, Settings
-from base.utils import logger
+from base.utils import clean_url, logger
 
 from .event import Event
 from .filter import Filters
@@ -62,7 +62,7 @@ class Relay:
     latitude: float = None
     longitude: float = None
     connected: bool = False
-    reconnect: bool = True
+    reconnect: bool = False
     ws: WebSocketApp = None
     # log_to_kafka: bool
 
@@ -72,7 +72,9 @@ class Relay:
     def __post_init__(self):
         try:
             url: str = self.url.lower()
-            url = url.strip()
+            url = clean_url(url)
+
+            url = f'ws://{url}' if ('wss://' not in url and 'ws://' not in url) else url
             self._validate_url(url)
         except ValidationError:
             raise
@@ -113,7 +115,6 @@ class Relay:
         self.error_counter += 1
         if self.error_threshold and self.error_counter > self.error_threshold:
             logger.error(f'Unable to connect to ${self.url}. Disconnecting!')
-            # self.close()
         else:
             self.check_reconnect()
 
@@ -198,21 +199,6 @@ class Relay:
                     self.num_sent_events += 1
                 except:
                     self.queue.put(message)
-            else:
-                time.sleep(0.1)
-
-    def verify_relay(self):
-        while True:
-            if self.connected and self.num_sent_events == 0:
-                message = self.queue.get()
-                try:
-                    self.ws.send(message)
-                    self.num_sent_events += 1
-                except:
-                    self.queue.put(message)
-            elif not self.connected and self.num_sent_events >= 1:
-                logger.debug(f'Ending queue worker: {self.url}')
-                return True
             else:
                 time.sleep(0.1)
 

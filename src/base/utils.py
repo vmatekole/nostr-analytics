@@ -9,7 +9,7 @@ from rich.logging import RichHandler
 
 def init() -> Logger:
     load_dotenv()  # TODO: Remove
-    level = os.environ.get('LOG_LEVEL', logging.DEBUG)
+    level = os.environ.get('LOG_LEVEL', logging.INFO)
     level = getattr(logging, level, logging.DEBUG) if isinstance(level, str) else level
     logFormatter = logging.Formatter(
         '%(levelname)s %(asctime)s %(processName)s %(message)s'
@@ -25,8 +25,12 @@ def init() -> Logger:
     return rootLogger
 
 
-def normalise_string(query: str):
-    return re.sub(r'[\s\t]+', '', query)
+def normalise_string(string: str):
+    return re.sub(r'[\s\t]+', '', string)
+
+
+def clean_url(url: str) -> str:
+    return normalise_string(url).lower().replace('%20', '')
 
 
 logger: Logger = init()

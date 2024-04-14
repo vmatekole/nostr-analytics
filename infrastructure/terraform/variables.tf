@@ -43,6 +43,11 @@ variable "event_schema" {
     "description": "DEFAULT CURRENT_TIMESTAMP()"
   },
   {
+    "name": "modified_at",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE"
+  },
+  {
     "name": "kind",
     "type": "INT64",
     "mode": "REQUIRED"
@@ -100,6 +105,11 @@ variable "relay_schema" {
     "name": "inserted_at",
     "type": "TIMESTAMP",
     "mode": "REQUIRED"
+  },
+    {
+    "name": "modified_at",
+    "type": "TIMESTAMP",
+    "mode": "NULLABLE"
   },
   {
     "name": "policy",

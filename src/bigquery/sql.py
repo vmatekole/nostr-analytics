@@ -50,7 +50,8 @@ class RelaySQL:
                     latitude = {relay.latitude},
                     longitude = {relay.longitude},
                     policy.write = {relay.policy.should_read},
-                    policy.read = {relay.policy.should_write}
+                    policy.read = {relay.policy.should_write},
+                    modified_at = CURRENT_TIMESTAMP()
                 WHERE url = '{relay.url}'; \n\n"""
             )
 

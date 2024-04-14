@@ -1,17 +1,16 @@
 import json
-import random
 import time
+import uuid
 from typing import Set
 
 from google.cloud import bigquery
 from pydantic import ValidationError
 
-from base.config import ConfigSettings
 from base.utils import logger
 from nostr.event import EventKind
 from nostr.filter import Filter, Filters
 from nostr.message_pool import EventMessage
-from nostr.relay import Relay, RelayPolicy
+from nostr.relay import Relay
 from nostr.relay_manager import RelayManager
 from services import bq
 
@@ -28,45 +27,51 @@ class Analytics:
     def __del__(self):
         self.close()
 
-    def _upsert_relay_info(self, relay: Relay):
+    def _upsert_relay_info(self, relays: list[Relay]):
         bq_service = self._bq_service
-        discovered_relay = None
 
-        if self._alive_relays:
-            for r in self._alive_relays:
-                if r.url == relay.url:
-                    discovered_relay = r
+        urls = set([relay.url for relay in relays]) - set(
+            [relay.url for relay in self._alive_relays]
+        )
 
-            # discovered_relay = next(
-            #     r for r in self.discovered_relays if r.url == relay.url)
-
-        if not discovered_relay:
-            self._alive_relays.append(
-                relay
+        relays_to_upsert = [r for r in relays if r.url in urls]
+        if len(relays_to_upsert) > 0:
+            self._alive_relays.extend(
+                relays_to_upsert
             )  # TODO: Comeback to this as it isn't clear as to whether policy is clients or servers ability
-            bq_service.save_relays([relay])
+            bq_service.save_relays(relays_to_upsert)
 
     def _relay_discovered(self, url: str):
         self._relay_urls_to_try.remove(url)
         self._relay_manager.remove_relay(url)
         self._upsert_relay_info(Relay(url=url))
 
+    def _add_relays_to_bq(self, urls: list[str]):
+        try:
+            relays = []
+            for url in urls:
+                relay = Relay(url)
+                relays.append(relay)
+        except ValidationError as e:
+            logger.debug(f'#kjhkjh8: Invalid relay url {e}')
+        self._upsert_relay_info(relays=relays)
+
     def _add_relay_for_discovery(self, url: str, filters: Filters):
         try:
-            self._relay_manager.add_relay(url=url, reconnect=False)
+            self._relay_manager.add_relay(url=url)
         except Exception as e:
-            logger.exception(f'#kjhh7 {e}')
+            logger.debug(f'#kjhh7 {e}')
             return
         self._relay_urls_to_try.add(url)
-        self._relay_manager.add_subscription_on_relay(url, 'foo', filters=filters)
+        self._relay_manager.add_subscription_on_relay(
+            url, id=str(uuid.uuid4()), filters=filters
+        )
 
     def close(self) -> None:
         self._relay_manager.close_all_relay_connections()
 
-        """_summary_
+        """ Discover follow lists of relays
         """
-        # TODO I think using the relay manager to discover relays isn't necessary and sub-optimal. We should look to use the short lived  — from websocket import create_connection
-        #
 
     def discover_relays(
         self, relay_seeds: list[str], min_relays_to_find: int = 1000
@@ -81,52 +86,54 @@ class Analytics:
         for relay_url in relay_seeds:
             self._add_relay_for_discovery(relay_url, filters)
 
-        self._relay_manager.add_subscription_on_all_relays(id='foo', filters=filters)
         time.sleep(1.25)
 
         while len(self._alive_relays) < min_relays_to_find:
+
             if self._relay_manager.message_pool.has_events():
                 event_msg: EventMessage = self._relay_manager.message_pool.get_event()
                 logger.debug(f'Got response:{event_msg.url}')
 
                 if (
-                    event_msg.event.content == ''
+                    not event_msg.event.content == ''
                 ):  # if the relay doesn't have a follow list try the next one
-                    continue
-
-                try:
-                    json_decoded: str = event_msg.event.content.replace(
-                        '\"', '"'
-                    )  # Sometimes we get double-encode json strings
-                    discovered_relays = json.loads(json_decoded)
-                    if getattr(
-                        discovered_relays, 'items'
-                    ):  # valid json array is not guaranteed
-                        for url, _ in discovered_relays.items():
-                            self._relay_urls_to_try.add(url)
-
                     try:
-                        self._relay_discovered(event_msg.url)
-                    except KeyError:
-                        logger.debug(
-                            f'{event_msg.url} has already been verified but there maybe still some events left in the pool from it.'
+                        json_decoded: str = event_msg.event.content.replace(
+                            '\"', '"'
+                        )  # Sometimes we get double-encode json strings
+                        discovered_relays = json.loads(json_decoded)
+
+                        if getattr(
+                            discovered_relays, 'items', None
+                        ):  # valid json array is not guaranteed
+                            urls: list[str] = [
+                                url[0] for url in discovered_relays.items()
+                            ]
+                            urls.append(event_msg.url)
+                            self._add_relays_to_bq(urls)
+
+                            #  add follow list to the relays to find more follow lists
+                            for url, _ in discovered_relays.items():
+                                self._relay_urls_to_try.add(url)
+                        else:
+                            logger.debug(
+                                f'{event_msg.url} not a valid json array {discovered_relays}'
+                            )
+                    except json.JSONDecodeError:
+                        logger.exception(
+                            f'Couldn\'t parse contact list of node {event_msg.url}'
                         )
-
-                except json.JSONDecodeError:
-                    logger.exception(
-                        f'Couldn\'t parse contact list of node {event_msg.url}'
+                        continue
+                else:
+                    logger.debug(
+                        f'{event_msg.url} has no follow list {event_msg.event}'
                     )
-                    continue
-            else:
-                for url in list(self._relay_urls_to_try):
-                    self._add_relay_for_discovery(url, filters)
 
-                # TODO find better why of handling latency in connections
-                logger.debug(f'Attempting to connect : {self._relay_manager.relays}')
-                time.sleep(2)
+            # TODO find better why of handling latency in connections
+            time.sleep(2)
 
         total: float = time.time() - start_time
-        logger.info(f'Discovered {self._alive_relays} relays  took {total}s')
+        logger.info(f'Discovered {len(self._alive_relays)} relays  took {total}s')
 
         # Cleanup
         self.close()

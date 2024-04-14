@@ -3,6 +3,10 @@ import re
 from queue import Queue
 from threading import Lock
 
+from rich import print
+
+from base.utils import clean_url, logger
+
 from .event import Event
 from .message_type import RelayMessageType
 
@@ -32,6 +36,7 @@ class MessagePool:
         self.notices: Queue[NoticeMessage] = Queue()
         self.eose_notices: Queue[EndOfStoredEventsMessage] = Queue()
         self._unique_events: set = set()
+        self._connected_relays: set[str] = set()
         self.lock: Lock = Lock()
 
     def add_message(self, message: str, url: str):
@@ -58,10 +63,7 @@ class MessagePool:
     def _process_message(self, message: str, url: str):
         message_json = json.loads(message)
         message_type = message_json[0]
-        clean_url: str = re.sub(
-            r'\s+', '', url
-        )  # Sometimes we get whitespace is in the url
-        url = clean_url
+        url = clean_url(url)
 
         if message_type == RelayMessageType.EVENT:
             subscription_id = message_json[1]
