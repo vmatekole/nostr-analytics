@@ -54,7 +54,7 @@ class TestKafkaProducer:
 
         try:
             nostr_producer: NostrProducer = NostrProducer(RelayTopic)
-            topic_name = ConfigSettings.relay_kafka_topic
+            topic_name: str = ConfigSettings.relay_kafka_topic
             relay_topic: RelayTopic = RelayTopic(
                 url=relay_obj_damus.url,
                 name=relay_obj_damus.name,
@@ -69,7 +69,7 @@ class TestKafkaProducer:
             assert False
 
     def test_create_event_topics(self):
-        nostr_producer = NostrProducer()
+        nostr_producer = NostrProducer(EventTopic)
 
         topics: list[EventTopic] = nostr_producer.topic_events_of_kind(
             kinds=[EventKind(3)], relay_urls=['wss://relay.damus.io'], max_events=10
@@ -79,7 +79,7 @@ class TestKafkaProducer:
         assert isinstance(topics[0], EventTopic)
 
     def test_create_relay_topics(self):
-        nostr_producer = NostrProducer()
+        nostr_producer = NostrProducer(RelayTopic)
 
         topics: list[RelayTopic] = nostr_producer.topic_relays(
             urls=['wss://relay.damus.io']
@@ -90,9 +90,9 @@ class TestKafkaProducer:
 
 
 class TestKafkaConsumer:
-    def test_consume_nostr_topic_1(self):
-        topic_names: list[str] = ['nostr']
-        nostr_consumer: NostrConsumer = NostrConsumer(topic_names)
+    def test_consume_1_event_topic(self):
+        topic_names: list[str] = [ConfigSettings.event_kafka_topic]
+        nostr_consumer: NostrConsumer = NostrConsumer(topic_names, EventTopic)
 
         THIRTY_SECONDS = 30
         start_time = time.time()
@@ -102,11 +102,30 @@ class TestKafkaConsumer:
         )
         # Try and capture messages over a 30 second period
         while time.time() - start_time < THIRTY_SECONDS:
-            key, msg = nostr_consumer.get_event_topic()
+            key, msg = nostr_consumer.consume_topic()
             if msg is not None:
                 logger.debug(f'key: {key} topic: {msg}')
                 event_topic = EventTopic(**msg)
                 assert isinstance(event_topic, EventTopic)
+                break
+
+    def test_consume_1_relay_topic(self):
+        topic_names: list[str] = [ConfigSettings.relay_kafka_topic]
+        nostr_consumer: NostrConsumer = NostrConsumer(topic_names, RelayTopic)
+
+        THIRTY_SECONDS = 30
+        start_time = time.time()
+
+        logger.info(
+            f'Subscribed to {topic_names} and trying for 30 secs for available topics'
+        )
+        # Try and capture messages over a 30 second period
+        while time.time() - start_time < THIRTY_SECONDS:
+            key, msg = nostr_consumer.consume_topic()
+            if msg is not None:
+                logger.debug(f'key: {key} topic: {msg}')
+                event_topic = RelayTopic(**msg)
+                assert isinstance(event_topic, RelayTopic)
                 break
 
     def test_consume_wrong_topic_1(self):
@@ -117,7 +136,7 @@ class TestKafkaConsumer:
             f'Subscribed to erroneous topic: {topic_names} and trying for 30 secs for available topics'
         )
         try:
-            key, msg = nostr_consumer.get_event_topic()
+            key, msg = nostr_consumer.consume_topic()
             assert False
         except Exception:
             logger.info(f'Topic: {topic_names} correctly does not exist')

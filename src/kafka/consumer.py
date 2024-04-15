@@ -1,3 +1,5 @@
+from typing import Type, Union
+
 from confluent_kafka import Consumer
 from confluent_kafka.schema_registry.avro import AvroDeserializer
 from confluent_kafka.serialization import (
@@ -6,17 +8,20 @@ from confluent_kafka.serialization import (
     StringDeserializer,
 )
 
-from kafka.schemas import KafkaBase
+from kafka.schemas import EventTopic, KafkaBase, RelayTopic
 
 
 class NostrConsumer(KafkaBase):
-    def __init__(self, topic_names: list[str]) -> None:
+    def __init__(
+        self, topic_names: list[str], schema: Union[Type[EventTopic], Type[RelayTopic]]
+    ) -> None:
         super().__init__()
-        self._avro_deserializer = AvroDeserializer(
-            schema_registry_client=self._schema_registry_client,
-        )
 
         self._string_serializer = StringDeserializer('utf_8')
+        self._avro_deserializer = AvroDeserializer(
+            schema_registry_client=self._schema_registry_client,
+            schema_str=schema.avro_schema(),
+        )
 
         self._consumer = Consumer(  # type: ignore
             {
@@ -31,7 +36,7 @@ class NostrConsumer(KafkaBase):
         )
         self._consumer.subscribe(topic_names)
 
-    def get_event_topic(self):  # -> tuple[Any, EventTopic]:
+    def consume_topic(self):  # -> tuple[Any, EventTopic]:
         msg = self._consumer.poll(1.0)
 
         if msg is not None:

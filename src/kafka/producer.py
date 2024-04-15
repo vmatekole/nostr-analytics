@@ -1,6 +1,6 @@
 import uuid
 from dataclasses import asdict
-from typing import Union
+from typing import Type, Union
 
 from confluent_kafka import Producer
 from confluent_kafka.schema_registry import SchemaRegistryClient
@@ -20,12 +20,8 @@ from .schemas import EventTopic, RelayTopic
 
 
 class NostrProducer(KafkaBase):
-    def __init__(self, schema: Union[EventTopic, RelayTopic]) -> None:
+    def __init__(self, schema: Union[Type[EventTopic], Type[RelayTopic]]) -> None:
         super().__init__()
-        self._avro_serializer = AvroSerializer(
-            schema_registry_client=self._schema_registry_client,
-            schema_str=schema.avro_schema(),
-        )
 
         self._string_serializer = StringSerializer('utf_8')
 
@@ -39,7 +35,10 @@ class NostrProducer(KafkaBase):
             }
         )
 
-        self._a = Analytics()
+        self._avro_serializer = AvroSerializer(
+            schema_registry_client=self._schema_registry_client,
+            schema_str=schema.avro_schema(),
+        )
 
     def serialise_key_topic(self, topic_name: str, key: str, event_topic):
         key = self._string_serializer(key)

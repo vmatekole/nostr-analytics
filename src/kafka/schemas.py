@@ -1,16 +1,18 @@
 from dataclasses import dataclass
 
 from confluent_kafka.schema_registry import SchemaRegistryClient
+from confluent_kafka.schema_registry.avro import AvroSerializer
 from dataclasses_avroschema import AvroModel
 
 from base.config import ConfigSettings, Settings
+from services.analytics import Analytics
 
 
 class KafkaBase:
     def __init__(self) -> None:
         self._config: Settings = ConfigSettings
+        self._a = Analytics()
 
-        self._config
         self._schema_registry_client = SchemaRegistryClient(
             conf={
                 'url': self._config.kafka_schema_url,
