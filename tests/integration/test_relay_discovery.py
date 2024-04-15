@@ -1,5 +1,6 @@
 from unittest.mock import Mock
 
+from base.config import ConfigSettings
 from kafka.producer import NostrProducer
 from kafka.schemas import EventTopic, RelayTopic
 from nostr.event import EventKind
@@ -17,9 +18,8 @@ class TestRelayAnalytics:
                 urls=['wss://relay.damus.io']
             )
             topics = topics[:10]
-            print(topics)
-            nostr_producer.produce('nostr-relay', topics)
-        except Exception as e:
+            nostr_producer.produce(ConfigSettings.relay_kafka_topic, topics)
+        except Exception:
             assert False
 
         nostr_producer._delivery_report.assert_called()  # type: ignore
@@ -39,7 +39,7 @@ class TestEventAnalytics:
             )
             topics = topics[:10]
 
-            nostr_producer.produce('nostr-event', topics)
+            nostr_producer.produce(ConfigSettings.event_kafka_topic, topics)
         except Exception:
             assert False
 

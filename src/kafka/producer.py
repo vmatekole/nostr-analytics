@@ -55,9 +55,8 @@ class NostrProducer(KafkaBase):
         else:
             print(f'Message delivered to {msg.topic()} [{msg.partition()}]')
 
-    def produce(self, topic_name: str, event_topics: list[any]):
-
-        for e in event_topics:
+    def produce(self, topic_name: str, topics: Union[RelayTopic, EventTopic]):
+        for e in topics:
             key, ser_event_topic = self.serialise_key_topic(
                 topic_name, str(uuid.uuid4()), e
             )
@@ -67,7 +66,7 @@ class NostrProducer(KafkaBase):
                 value=ser_event_topic,
                 on_delivery=self._delivery_report,
             )
-            self._producer.flush()
+        self._producer.flush()
 
     def topic_relays(self, urls: list[str]) -> list[any]:
         a: Analytics = self._a

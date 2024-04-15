@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     relay_refresh_ip_geo_relay_info: bool
     max_connected_relays: int
     test_without_internet: bool
+    relay_kafka_topic: str
+    event_kafka_topic: str
 
 
 ConfigSettings = Settings()

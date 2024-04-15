@@ -32,3 +32,6 @@ class EventTopic(AvroModel):
 @dataclass
 class RelayTopic(AvroModel):
     url: str
+    name: str = None
+    latitude: float = None
+    longitude: float = None
