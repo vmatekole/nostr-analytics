@@ -5,6 +5,7 @@ from confluent_kafka.schema_registry.avro import AvroSerializer
 from dataclasses_avroschema import AvroModel
 
 from base.config import ConfigSettings, Settings
+from nostr.event import Event
 from services.analytics import Analytics
 
 
@@ -29,6 +30,24 @@ class EventTopic(AvroModel):
     sig: str
     content: str = None
     tags: list[list[str]] = None
+
+    @staticmethod
+    def parse_event_from_topic(event_topics: list['EventTopic']) -> list[Event]:
+        events: list[Event] = []
+
+        for t in event_topics:
+            e = Event(
+                content=t.content,
+                pubkey=t.pubkey,
+                created_at=t.created_at,
+                kind=t.kind,
+                sig=t.sig,
+                tags=t.tags,
+            )
+
+            events.append(e)
+
+        return events
 
 
 @dataclass

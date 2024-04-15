@@ -20,10 +20,13 @@ from .schemas import EventTopic, RelayTopic
 
 
 class NostrProducer(KafkaBase):
-    def __init__(self, schema: Union[Type[EventTopic], Type[RelayTopic]]) -> None:
+    def __init__(
+        self, topic_name: str, schema: Union[Type[EventTopic], Type[RelayTopic]]
+    ) -> None:
         super().__init__()
 
         self._string_serializer = StringSerializer('utf_8')
+        self._topic_name: str = topic_name
 
         self._producer = Producer(  # type: ignore
             {
@@ -54,13 +57,13 @@ class NostrProducer(KafkaBase):
         else:
             print(f'Message delivered to {msg.topic()} [{msg.partition()}]')
 
-    def produce(self, topic_name: str, topics: Union[RelayTopic, EventTopic]):
+    def produce(self, topics: Union[RelayTopic, EventTopic]):
         for e in topics:
             key, ser_event_topic = self.serialise_key_topic(
-                topic_name, str(uuid.uuid4()), e
+                self._topic_name, str(uuid.uuid4()), e
             )
             self._producer.produce(
-                topic=topic_name,
+                topic=self._topic_name,
                 key=key,
                 value=ser_event_topic,
                 on_delivery=self._delivery_report,

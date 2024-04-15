@@ -228,7 +228,7 @@ class Relay:
             ],
         }
 
-    def bq_dump(self):
+    def to_dict(self):
         return {
             'url': self.url,
             'name': self.name or '',

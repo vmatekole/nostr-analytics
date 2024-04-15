@@ -55,7 +55,7 @@ class TestBiqQuery:
     def test_event_bq_schema(self, event_bq_schema):
         assert Event.bq_schema() == event_bq_schema
 
-    def test_bq_dump(self, event_bq_insert_data_2):
+    def test_to_dict(self, event_bq_insert_data_2):
         event: Event = Event(**event_bq_insert_data_2)
         assert event.to_dict() == {
             'content': 'Sample content with tags',
@@ -82,11 +82,11 @@ class TestBiqQuery:
             ],
         }
 
-    def test_bq_dump(self, discovered_relays):
+    def test_to_dict(self, discovered_relays):
         ConfigSettings.relay_refresh_ip_geo_relay_info = True
         relay: Relay = discovered_relays[0]
 
-        result = relay.bq_dump()
+        result = relay.to_dict()
 
         assert result['country_code'] == 'USA'
         assert result['latitude'] == '37.78035'

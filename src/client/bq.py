@@ -44,7 +44,7 @@ class Bq:
 
         rows_to_insert = []
         for obj in objs:
-            row: dict[str, Any] = obj.bq_dump()
+            row: dict[str, Any] = obj.to_dict()
             rows_to_insert.append(row)
 
         # Insert rows into BigQuery table

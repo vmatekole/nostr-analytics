@@ -102,7 +102,7 @@ class TestKafkaConsumer:
         )
         # Try and capture messages over a 30 second period
         while time.time() - start_time < THIRTY_SECONDS:
-            key, msg = nostr_consumer.consume_topic()
+            key, msg = nostr_consumer.consume()
             if msg is not None:
                 logger.debug(f'key: {key} topic: {msg}')
                 event_topic = EventTopic(**msg)
@@ -121,7 +121,7 @@ class TestKafkaConsumer:
         )
         # Try and capture messages over a 30 second period
         while time.time() - start_time < THIRTY_SECONDS:
-            key, msg = nostr_consumer.consume_topic()
+            key, msg = nostr_consumer.consume()
             if msg is not None:
                 logger.debug(f'key: {key} topic: {msg}')
                 event_topic = RelayTopic(**msg)
@@ -136,7 +136,7 @@ class TestKafkaConsumer:
             f'Subscribed to erroneous topic: {topic_names} and trying for 30 secs for available topics'
         )
         try:
-            key, msg = nostr_consumer.consume_topic()
+            key, msg = nostr_consumer.consume()
             assert False
         except Exception:
             logger.info(f'Topic: {topic_names} correctly does not exist')

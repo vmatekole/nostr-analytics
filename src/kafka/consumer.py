@@ -36,7 +36,7 @@ class NostrConsumer(KafkaBase):
         )
         self._consumer.subscribe(topic_names)
 
-    def consume_topic(self):  # -> tuple[Any, EventTopic]:
+    def consume(self):  # -> tuple[Any, EventTopic]:
         msg = self._consumer.poll(1.0)
 
         if msg is not None:

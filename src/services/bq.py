@@ -7,6 +7,7 @@ from base.config import ConfigSettings, Settings
 from base.utils import logger
 from bigquery.sql import EventsSQL, RelaySQL
 from client.bq import Bq
+from nostr.event import Event
 from nostr.relay import Relay, RelayPolicy
 
 
@@ -61,7 +62,7 @@ class RelayService(BqService):
         )
         return self._bq.run_sql(query)
 
-    def save_events(self, events):
+    def save_events(self, events: list[Event]):
         query: str = EventsSQL.insert_events(
             ConfigSettings.bq_dataset_id, ConfigSettings.bq_event_table_id, events
         )
