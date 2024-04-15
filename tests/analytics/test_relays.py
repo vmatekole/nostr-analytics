@@ -1,6 +1,7 @@
 import pytest
 
 from base.config import ConfigSettings
+from nostr.event import EventKind
 from services.analytics import Analytics
 
 from ..nostr.fixtures import relay_seed_urls
@@ -21,3 +22,12 @@ class TestAnalyticsRelay:
         )
 
         assert len(relays) >= 100
+
+    def test_events_of_kind_1(self):
+        a = Analytics()
+
+        num_events = a.events_of_kind(
+            [EventKind.TEXT_NOTE], ['wss://relay.damus.io'], 500
+        )
+
+        assert num_events >= 500

@@ -1,4 +1,11 @@
+import sqlglot
+import sqlglot.errors
+
+from base.utils import logger
+from nostr.event import Event
 from nostr.relay import Relay
+
+#  TODO Replace this withh sqlglot
 
 
 class RelaySQL:
@@ -56,4 +63,37 @@ class RelaySQL:
             )
 
         query = RelaySQL.replace_none_with_null(query)
+        return query
+
+
+class EventsSQL:
+
+    """_summary_
+
+    Returns:
+        _type_: _description_
+    """
+
+    @staticmethod
+    def insert_events(dataset_id: str, table_id: str, events: list[Event]) -> str:
+        events_to_insert = []
+
+        for e in events:
+            content = e.content.replace("'", '')  # TODO need to preserve quotes
+            content = content.strip().replace('\n', '\\n')
+
+            events_to_insert.append(
+                f'''('{content}','{e.pub_key}',{int(e.kind)},'{e.sig}',{e.created_at})\n'''
+            )
+        relays_str = ' ,'.join(events_to_insert)
+
+        query: str = f'''
+                    INSERT INTO {dataset_id}.{table_id} (content, pubkey, kind, sig, created_at)\n
+                    VALUES {relays_str}
+                '''
+        try:
+            query = sqlglot.transpile(query)
+        except sqlglot.errors.ParseError as e:
+            logger.exception(e)
+
         return query

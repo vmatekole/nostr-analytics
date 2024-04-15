@@ -7,7 +7,7 @@ from google.cloud import bigquery
 from pydantic import ValidationError
 
 from base.utils import logger
-from nostr.event import EventKind
+from nostr.event import Event, EventKind
 from nostr.filter import Filter, Filters
 from nostr.message_pool import EventMessage
 from nostr.relay import Relay
@@ -22,24 +22,29 @@ class Analytics:
         self._bq_service = bq.RelayService(bigquery.Client())
         self._alive_relays = self._bq_service.get_relays()
 
-        # self.discovered_relays: list[Relay] = self._bq_service.get_relays()
-
     def __del__(self):
         self.close()
+
+    def _connect_to_relays(self, urls: list[str], filters: list[Filters]):
+        for url in urls:
+            self._relay_manager.add_relay(url)
+            self._relay_manager.add_subscription_on_relay(
+                url, id=str(uuid.uuid4()), filters=filters
+            )
 
     def _upsert_relay_info(self, relays: list[Relay]):
         bq_service = self._bq_service
 
-        urls = set([relay.url for relay in relays]) - set(
+        urls: Set[str] = set([relay.url for relay in relays]) - set(
             [relay.url for relay in self._alive_relays]
         )
 
-        relays_to_upsert = [r for r in relays if r.url in urls]
-        if len(relays_to_upsert) > 0:
+        relays_to_save: list[Relay] = [r for r in relays if r.url in urls]
+        if len(relays_to_save) > 0:
             self._alive_relays.extend(
-                relays_to_upsert
+                relays_to_save
             )  # TODO: Comeback to this as it isn't clear as to whether policy is clients or servers ability
-            bq_service.save_relays(relays_to_upsert)
+            bq_service.save_relays(relays_to_save)
 
     def _relay_discovered(self, url: str):
         self._relay_urls_to_try.remove(url)
@@ -62,10 +67,8 @@ class Analytics:
         except Exception as e:
             logger.debug(f'#kjhh7 {e}')
             return
-        self._relay_urls_to_try.add(url)
-        self._relay_manager.add_subscription_on_relay(
-            url, id=str(uuid.uuid4()), filters=filters
-        )
+
+        self._connect_to_relays([url], filters)
 
     def close(self) -> None:
         self._relay_manager.close_all_relay_connections()
@@ -74,7 +77,7 @@ class Analytics:
         """
 
     def discover_relays(
-        self, relay_seeds: list[str], min_relays_to_find: int = 1000
+        self, relay_seeds: list[str], min_relays_to_find: int = 10
     ) -> Set[str]:
         start_time: float = time.time()
         filters = Filters(initlist=[Filter(kinds=[EventKind.CONTACTS])])
@@ -132,10 +135,42 @@ class Analytics:
             # TODO find better why of handling latency in connections
             time.sleep(2)
 
-        total: float = time.time() - start_time
-        logger.info(f'Discovered {len(self._alive_relays)} relays  took {total}s')
-
         # Cleanup
         self.close()
 
+        total: float = time.time() - start_time
+        logger.info(f'Discovered {len(self._alive_relays)} relays  took {total}s')
+
         return self._alive_relays
+
+    def events_of_kind(
+        self, kinds: list[EventKind], relay_urls: list[str], max_events=-1
+    ):
+        filters = Filters(initlist=[Filter(kinds=[EventKind.TEXT_NOTE])])
+        self._connect_to_relays(relay_urls, filters)
+
+        num_of_events = 0
+
+        events: list[Event] = []
+
+        try:
+            while True:
+                if self._relay_manager.message_pool.has_events():
+                    event_msg: EventMessage = (
+                        self._relay_manager.message_pool.get_event()
+                    )
+                    events.append(event_msg.event)
+
+                    if len(events) >= 10:
+                        self._bq_service.save_events(events)
+                        events = []
+                    num_of_events += 1
+                else:
+                    if not max_events == -1 and num_of_events >= max_events:
+                        break
+
+            self.close()
+
+            return num_of_events
+        except Exception as e:
+            logger.exception(f'#jj88: {e}')

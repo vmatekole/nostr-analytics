@@ -85,6 +85,7 @@ class Relay:
         self.connected: bool = False
         self.error_counter: int = 0
         self.error_threshold: int = 0
+        self.terminate_q_worker = False
 
         if (
             self.message_pool
@@ -176,6 +177,7 @@ class Relay:
 
     def close(self):
         self.ws.close()
+        self.terminate_q_worker = True
 
     def check_reconnect(self):
         try:
@@ -192,7 +194,7 @@ class Relay:
 
     def queue_worker(self):
         while True:
-            if self.connected:
+            if self.connected and not self.terminate_q_worker:
                 message = self.queue.get()
                 try:
                     self.ws.send(message)

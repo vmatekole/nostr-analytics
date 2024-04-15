@@ -1,13 +1,11 @@
 import json
 import threading
 import time
-from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from threading import Lock
 
 from google.cloud import bigquery
 from pydantic import ValidationError
-from rich import print
 
 from base.utils import logger
 from services import bq
@@ -31,9 +29,6 @@ class RelayManager:
         self.relays = {}
         self.message_pool: MessagePool = MessagePool()
         self.lock: Lock = Lock()
-        self.executor = ThreadPoolExecutor(
-            max_workers=300
-        )  # Adjust the max_workers as needed
         self._num_workers = 0
 
     def _get_relay(self, url: str) -> Relay:
@@ -56,8 +51,12 @@ class RelayManager:
             logger.debug(f'#kjhkjh8: Invalid relay url {e}')
             raise
 
-        future_connect = self.executor.submit(relay.connect)
-        future_queue_worker = self.executor.submit(relay.queue_worker)
+        future_connect = threading.Thread(
+            target=relay.connect, name=f'{relay.url}-thread'
+        )
+        future_queue_worker = threading.Thread(
+            target=relay.queue_worker, name=f'{relay.url}-queue', daemon=True
+        )
 
         with self.lock:
             self.relays[url] = {
@@ -65,6 +64,9 @@ class RelayManager:
                 'future_queue_worker': future_queue_worker,
                 'relay': relay,
             }
+
+        future_connect.start()
+        future_queue_worker.start()
 
         time.sleep(1)
 
@@ -75,8 +77,6 @@ class RelayManager:
                 relay_future = self.relays.pop(url)
                 relay: Relay = relay_future['relay']
                 relay.close()
-                cancel_1 = relay_future['future_connect'].cancel()
-                cancel_2 = relay_future['future_queue_worker'].cancel()
 
     def remove_all_relays(self):
         with self.lock:

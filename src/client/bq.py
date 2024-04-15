@@ -29,7 +29,7 @@ class Bq:
             else:
                 return []
         except ClientError as e:
-            logger.error(f'Bigquery ERROR(#uyu7j): {e}')
+            logger.error(f'Bigquery ERROR(#uyu7j): {e} Query; {query}')
 
     def insert_to_bigquery(
         self, objs: list[any], project_id: str, dataset_id: str, table_id: str
