@@ -1,7 +1,7 @@
 import json
 import time
 import uuid
-from typing import Set
+from typing import Set, Union
 
 from google.cloud import bigquery
 from pydantic import ValidationError
@@ -145,7 +145,7 @@ class Analytics:
 
     def events_of_kind(
         self, kinds: list[EventKind], relay_urls: list[str], max_events=-1
-    ):
+    ) -> Union[list[Event], None]:
         filters = Filters(initlist=[Filter(kinds=[EventKind.TEXT_NOTE])])
         self._connect_to_relays(relay_urls, filters)
 
@@ -160,10 +160,6 @@ class Analytics:
                         self._relay_manager.message_pool.get_event()
                     )
                     events.append(event_msg.event)
-
-                    if len(events) >= 10:
-                        self._bq_service.save_events(events)
-                        events = []
                     num_of_events += 1
                 else:
                     if not max_events == -1 and num_of_events >= max_events:
@@ -171,6 +167,6 @@ class Analytics:
 
             self.close()
 
-            return num_of_events
+            return events
         except Exception as e:
             logger.exception(f'#jj88: {e}')

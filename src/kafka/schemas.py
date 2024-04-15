@@ -21,9 +21,14 @@ class KafkaBase:
 
 @dataclass
 class EventTopic(AvroModel):
-    content: str
     pubkey: str
     created_at: int
     kind: int
     sig: str
-    tags: list[list[str]]
+    content: str = None
+    tags: list[list[str]] = None
+
+
+@dataclass
+class RelayTopic(AvroModel):
+    url: str

@@ -14,6 +14,7 @@ class TestAnalyticsRelay:
         reason='Internet-requiring tests are disabled',
     )
     def test_discover_relays(self, relay_seed_urls: list[str]):
+        # TODO Delete relays first  from test data
         analytics: Analytics = Analytics()
 
         relays: set[str] = analytics.discover_relays(
@@ -26,8 +27,6 @@ class TestAnalyticsRelay:
     def test_events_of_kind_1(self):
         a = Analytics()
 
-        num_events = a.events_of_kind(
-            [EventKind.TEXT_NOTE], ['wss://relay.damus.io'], 500
-        )
+        events = a.events_of_kind([EventKind.TEXT_NOTE], ['wss://relay.damus.io'], 500)
 
-        assert num_events >= 500
+        assert len(events) >= 500

@@ -57,7 +57,7 @@ class TestBiqQuery:
 
     def test_bq_dump(self, event_bq_insert_data_2):
         event: Event = Event(**event_bq_insert_data_2)
-        assert event.bq_dump() == {
+        assert event.to_dict() == {
             'content': 'Sample content with tags',
             'created_at': 1709145700,
             'kind': 1,

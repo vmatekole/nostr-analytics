@@ -3,8 +3,8 @@ import time
 from base.utils import logger
 from kafka.consumer import NostrConsumer
 from kafka.producer import NostrProducer
-from kafka.schemas import EventTopic
-from nostr.event import Event
+from kafka.schemas import EventTopic, RelayTopic
+from nostr.event import Event, EventKind
 
 from ..nostr.fixtures import event_input_data_1, event_input_data_2
 from .fixtures import kafka_event_topic
@@ -41,16 +41,32 @@ class TestKafkaProducer:
             nostr_producer: NostrProducer = NostrProducer()
             topic_name = 'nostr'
             event_topic: EventTopic = EventTopic(**event_input_data_1)
-            key: str = 'nostr-topic-key'
 
-            nostr_producer.produce(
-                topic_name=topic_name, key=key, event_topic=event_topic
-            )
+            nostr_producer.produce(topic_name=topic_name, event_topics=[event_topic])
             nostr_producer._delivery_report.assert_called_once()  # type: ignore
 
-            assert True
         except Exception:
             assert False
+
+    def test_create_event_topics(self):
+        nostr_producer = NostrProducer()
+
+        topics: list[EventTopic] = nostr_producer.topic_events_of_kind(
+            kinds=[EventKind(3)], relay_urls=['wss://relay.damus.io'], max_events=10
+        )
+
+        assert len(topics) >= 10
+        assert isinstance(topics[0], EventTopic)
+
+    def test_create_relay_topics(self):
+        nostr_producer = NostrProducer()
+
+        topics: list[RelayTopic] = nostr_producer.topic_relays(
+            urls=['wss://relay.damus.io']
+        )
+
+        assert len(topics) >= 10
+        assert isinstance(topics[0], RelayTopic)
 
 
 class TestKafkaConsumer:

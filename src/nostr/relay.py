@@ -64,7 +64,6 @@ class Relay:
     connected: bool = False
     reconnect: bool = False
     ws: WebSocketApp = None
-    # log_to_kafka: bool
 
     def _validate_url(self, url: str):
         UrlValidation(url=url)
@@ -107,6 +106,7 @@ class Relay:
 
     def _on_close(self, class_obj, status_code, message):
         self.connected = False
+        self.terminate_q_worker = True
 
     def _on_message(self, class_obj, message: str):
         self.message_pool.add_message(message, self.url)
@@ -177,7 +177,6 @@ class Relay:
 
     def close(self):
         self.ws.close()
-        self.terminate_q_worker = True
 
     def check_reconnect(self):
         try:
@@ -201,6 +200,8 @@ class Relay:
                     self.num_sent_events += 1
                 except:
                     self.queue.put(message)
+            elif not self.connected and self.terminate_q_worker:
+                break
             else:
                 time.sleep(0.1)
 

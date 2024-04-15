@@ -111,7 +111,7 @@ class Event(ModelBase):
             ]
         )
 
-    def bq_dump(self) -> dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         event: dict[str, Any] = self.model_dump()
 
         bq_tag_repr = [

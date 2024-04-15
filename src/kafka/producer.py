@@ -1,4 +1,6 @@
+import uuid
 from dataclasses import asdict
+from typing import Union
 
 from confluent_kafka import Producer
 from confluent_kafka.schema_registry import SchemaRegistryClient
@@ -8,18 +10,21 @@ from confluent_kafka.serialization import (
     SerializationContext,
     StringSerializer,
 )
+from rich import print
 
 from kafka.schemas import KafkaBase
+from nostr.event import Event, EventKind
+from services.analytics import Analytics
 
-from .schemas import EventTopic
+from .schemas import EventTopic, RelayTopic
 
 
 class NostrProducer(KafkaBase):
-    def __init__(self) -> None:
+    def __init__(self, schema: Union[EventTopic, RelayTopic]) -> None:
         super().__init__()
         self._avro_serializer = AvroSerializer(
             schema_registry_client=self._schema_registry_client,
-            schema_str=EventTopic.avro_schema(),
+            schema_str=schema.avro_schema(),
         )
 
         self._string_serializer = StringSerializer('utf_8')
@@ -34,7 +39,9 @@ class NostrProducer(KafkaBase):
             }
         )
 
-    def serialise_key_topic(self, topic_name: str, key: str, event_topic: EventTopic):
+        self._a = Analytics()
+
+    def serialise_key_topic(self, topic_name: str, key: str, event_topic):
         key = self._string_serializer(key)
         mesg = self._avro_serializer(
             asdict(event_topic),
@@ -48,12 +55,48 @@ class NostrProducer(KafkaBase):
         else:
             print(f'Message delivered to {msg.topic()} [{msg.partition()}]')
 
-    def produce(self, topic_name: str, key: str, event_topic: EventTopic):
-        key, ser_event_topic = self.serialise_key_topic(topic_name, key, event_topic)
-        self._producer.produce(
-            topic=topic_name,
-            key=key,
-            value=ser_event_topic,
-            on_delivery=self._delivery_report,
+    def produce(self, topic_name: str, event_topics: list[any]):
+
+        for e in event_topics:
+            key, ser_event_topic = self.serialise_key_topic(
+                topic_name, str(uuid.uuid4()), e
+            )
+            self._producer.produce(
+                topic=topic_name,
+                key=key,
+                value=ser_event_topic,
+                on_delivery=self._delivery_report,
+            )
+            self._producer.flush()
+
+    def topic_relays(self, urls: list[str]) -> list[any]:
+        a: Analytics = self._a
+
+        relays: set[str] = a.discover_relays(urls)
+
+        topics = [RelayTopic(r.url) for r in list(relays)]
+
+        return topics
+
+    def topic_events_of_kind(
+        self, kinds: list[EventKind], relay_urls: list[str], max_events: int = -1
+    ) -> list[any]:
+        a: Analytics = self._a
+
+        events: list[Event] = a.events_of_kind(
+            kinds=kinds, relay_urls=relay_urls, max_events=max_events
         )
-        self._producer.flush()
+
+        topics: list[EventTopic] = [
+            EventTopic(
+                pubkey=e.pubkey,
+                created_at=e.created_at,
+                kind=e.kind,
+                sig=e.sig,
+                content=e.content,
+                tags=e.tags,
+            )
+            for e in events
+        ]
+
+        return topics
