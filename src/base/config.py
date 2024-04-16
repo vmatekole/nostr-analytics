@@ -1,8 +1,13 @@
+import os
+
+from dotenv import load_dotenv
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+load_dotenv()
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file='.env', env_file_encoding='utf-8')
+    model_config = SettingsConfigDict(env_file_encoding='utf-8')
     priv_key: str
     pub_key: str
     kafka_url: str
@@ -24,4 +29,4 @@ class Settings(BaseSettings):
     event_kafka_topic: str
 
 
-ConfigSettings = Settings()
+ConfigSettings = Settings(_env_file=os.environ['NOSTR_A_ENV'])
