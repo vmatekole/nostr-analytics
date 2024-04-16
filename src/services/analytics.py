@@ -20,7 +20,7 @@ class Analytics:
         self._relay_manager = RelayManager()
         self._relay_urls_to_try: set[str] = set()
         self._bq_service = bq.RelayService(bigquery.Client())
-        self._alive_relays = self._bq_service.get_relays()
+        self._discovered_relays: list[Relay] = self._bq_service.get_relays()
 
     def __del__(self):
         self.close()
@@ -36,12 +36,12 @@ class Analytics:
         bq_service = self._bq_service
 
         urls: Set[str] = set([relay.url for relay in relays]) - set(
-            [relay.url for relay in self._alive_relays]
+            [relay.url for relay in self._discovered_relays]
         )
 
         relays_to_save: list[Relay] = [r for r in relays if r.url in urls]
         if len(relays_to_save) > 0:
-            self._alive_relays.extend(
+            self._discovered_relays.extend(
                 relays_to_save
             )  # TODO: Comeback to this as it isn't clear as to whether policy is clients or servers ability
             bq_service.save_relays(relays_to_save)
@@ -51,14 +51,18 @@ class Analytics:
         self._relay_manager.remove_relay(url)
         self._upsert_relay_info(Relay(url=url))
 
-    def _add_relays_to_bq(self, urls: list[str]):
+    def _create_relays(self, urls: list[str]):
+        relays: list[Relay] = []
         try:
-            relays = []
             for url in urls:
                 relay = Relay(url)
                 relays.append(relay)
-        except ValidationError as e:
+            return relays
+        except Exception as e:
             logger.debug(f'#kjhkjh8: Invalid relay url {e}')
+
+    def _add_relays_to_bq(self, urls: list[str]):
+        relays: list[Relay] | None = self._create_relays(urls)
         self._upsert_relay_info(relays=relays)
 
     def _add_relay_for_discovery(self, url: str, filters: Filters):
@@ -78,7 +82,7 @@ class Analytics:
 
     def discover_relays(
         self, relay_seeds: list[str], min_relays_to_find: int = 10
-    ) -> Set[str]:
+    ) -> list[Relay]:
         start_time: float = time.time()
         filters = Filters(initlist=[Filter(kinds=[EventKind.CONTACTS])])
         MAX_RELAYS: int = 20
@@ -91,7 +95,8 @@ class Analytics:
 
         time.sleep(1.25)
 
-        while len(self._alive_relays) < min_relays_to_find:
+        urls: set[str] = set()
+        while len(urls) < min_relays_to_find:
 
             if self._relay_manager.message_pool.has_events():
                 event_msg: EventMessage = self._relay_manager.message_pool.get_event()
@@ -109,15 +114,11 @@ class Analytics:
                         if getattr(
                             discovered_relays, 'items', None
                         ):  # valid json array is not guaranteed
-                            urls: list[str] = [
-                                url[0] for url in discovered_relays.items()
-                            ]
-                            urls.append(event_msg.url)
-                            self._add_relays_to_bq(urls)
+                            urls: set[str] = {
+                                relay[0] for relay in discovered_relays.items()
+                            }
+                            urls.add(event_msg.url)
 
-                            #  add follow list to the relays to find more follow lists
-                            for url, _ in discovered_relays.items():
-                                self._relay_urls_to_try.add(url)
                         else:
                             logger.debug(
                                 f'{event_msg.url} not a valid json array {discovered_relays}'
@@ -139,9 +140,10 @@ class Analytics:
         self.close()
 
         total: float = time.time() - start_time
-        logger.info(f'Discovered {len(self._alive_relays)} relays  took {total}s')
+        relays: Union[list[Relay], None] = self._create_relays(list(urls))
+        logger.info(f'Discovered {len(relays)} relays  took {total}s')
 
-        return self._alive_relays
+        return relays
 
     def events_of_kind(
         self, kinds: list[EventKind], relay_urls: list[str], max_events=-1

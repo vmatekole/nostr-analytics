@@ -27,6 +27,7 @@ dev = [
     "fastavro>=1.9.4",
     "pytest-mock>=3.14.0",
     "coverage>=7.4.4",
+    "pytest-timeout>=2.3.1",
 ]
 [tool.black]
 skip-string-normalization = true
@@ -34,7 +35,5 @@ skip-string-normalization = true
 [tool.pytest.ini_options]
 pythonpath = ["./src"]
 log_cli = true
-log_cli_level = "DEBUG"
-log_cli_format = "%(message)s"
 
 [tool.pdm]

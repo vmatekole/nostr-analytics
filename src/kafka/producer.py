@@ -14,6 +14,7 @@ from rich import print
 
 from kafka.schemas import KafkaBase
 from nostr.event import Event, EventKind
+from nostr.relay import Relay
 from services.analytics import Analytics
 
 from .schemas import EventTopic, RelayTopic
@@ -70,12 +71,14 @@ class NostrProducer(KafkaBase):
             )
         self._producer.flush()
 
-    def topic_relays(self, urls: list[str]) -> list[any]:
+    def discover_relays(
+        self, urls: list[str], min_relays_to_find: int = 10
+    ) -> list[RelayTopic]:
         a: Analytics = self._a
 
-        relays: set[str] = a.discover_relays(urls)
+        relays: list[Relay] = a.discover_relays(urls, min_relays_to_find)
 
-        topics = [RelayTopic(r.url) for r in list(relays)]
+        topics: list[RelayTopic] = [RelayTopic(r.url) for r in list(relays)]
 
         a.close()
         return topics

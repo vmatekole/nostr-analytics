@@ -84,7 +84,7 @@ class TestKafkaProducer:
     def test_create_relay_topics(self):
         nostr_producer = NostrProducer(RelayTopic)
 
-        topics: list[RelayTopic] = nostr_producer.topic_relays(
+        topics: list[RelayTopic] = nostr_producer.discover_relays(
             urls=['wss://relay.damus.io']
         )
 

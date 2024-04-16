@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     test_without_internet: bool
     relay_kafka_topic: str
     event_kafka_topic: str
+    log_level: str
 
 
 ConfigSettings = Settings(_env_file=os.environ['NOSTR_A_ENV'])

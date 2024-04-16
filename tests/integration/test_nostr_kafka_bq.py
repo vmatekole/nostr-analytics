@@ -16,7 +16,7 @@ class TestRelayAnalytics:
         nostr_producer = NostrProducer(RelayTopic)
 
         try:
-            topics: list[RelayTopic] = nostr_producer.topic_relays(
+            topics: list[RelayTopic] = nostr_producer.discover_relays(
                 urls=['wss://relay.damus.io']
             )
             topics = topics[:10]
@@ -52,7 +52,7 @@ class TestEventAnalytics:
     def test_producing_and_saving_events(self, mocker):
         topic_names: list[str] = [ConfigSettings.event_kafka_topic]
         bq_service = bq.EventService(bigquery.Client())
-        MAX_EVENTS = 10
+        MAX_EVENTS = 1000
 
         mocker.patch.object(NostrProducer, '_delivery_report')
 
@@ -61,13 +61,12 @@ class TestEventAnalytics:
 
         try:
             topics: list[EventTopic] = nostr_producer.topic_events_of_kind(
-                kinds=[EventKind(EventKind.CONTACTS)],
-                relay_urls=['wss://relay.damus.io'],
+                kinds=[EventKind(EventKind.TEXT_NOTE)],
+                relay_urls=['wss://relay.damus.io', 'wss://nostr.wine'],
                 max_events=MAX_EVENTS,
             )
 
             nostr_producer.produce(topics)
-            nostr_consumer.consume()
 
             num_events = 0
             event_topics = []
@@ -100,12 +99,12 @@ class TestEventAnalytics:
         nostr_consumer = NostrConsumer(topic_names, RelayTopic)
 
         try:
-            topics: list[EventTopic] = nostr_producer.topic_relays(
-                urls=['wss://relay.damus.io'],
+            topics: list[EventTopic] = nostr_producer.discover_relays(
+                urls=['wss://relay.damus.io', 'wss://nostr.wine'],
+                min_relays_to_find=MAX_RELAYS,
             )
 
             nostr_producer.produce(topics)
-            nostr_consumer.consume()
 
             num_relays = 0
             relay_topics = []

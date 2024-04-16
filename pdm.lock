@@ -5,7 +5,7 @@
 groups = ["default", "dev"]
 strategy = ["cross_platform", "inherit_metadata"]
 lock_version = "4.4.1"
-content_hash = "sha256:92f40885049e667fa196dc76eac831db8cbf79c3d76cf4487c91a3c2ca945e78"
+content_hash = "sha256:5ea3419e1f7bd71d4e4625ff58b8cc5b2839d9a572e84c1f882cda7b50a95fbe"
 
 [[package]]
 name = "agate"
@@ -2231,6 +2231,20 @@ dependencies = [
 files = [
     {file = "pytest-mock-3.14.0.tar.gz", hash = "sha256:2719255a1efeceadbc056d6bf3df3d1c5015530fb40cf347c0f9afac88410bd0"},
     {file = "pytest_mock-3.14.0-py3-none-any.whl", hash = "sha256:0b72c38033392a5f4621342fe11e9219ac11ec9d375f8e2a0c164539e0d70f6f"},
+]
+
+[[package]]
+name = "pytest-timeout"
+version = "2.3.1"
+requires_python = ">=3.7"
+summary = "pytest plugin to abort hanging tests"
+groups = ["dev"]
+dependencies = [
+    "pytest>=7.0.0",
+]
+files = [
+    {file = "pytest-timeout-2.3.1.tar.gz", hash = "sha256:12397729125c6ecbdaca01035b9e5239d4db97352320af155b3f5de1ba5165d9"},
+    {file = "pytest_timeout-2.3.1-py3-none-any.whl", hash = "sha256:68188cb703edfc6a18fad98dc25a3c61e9f24d644b0b70f33af545219fc7813e"},
 ]
 
 [[package]]

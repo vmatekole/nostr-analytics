@@ -2,6 +2,7 @@ import pytest
 
 from base.config import ConfigSettings
 from nostr.event import EventKind
+from nostr.relay import Relay
 from services.analytics import Analytics
 
 from ..nostr.fixtures import relay_seed_urls
@@ -17,7 +18,7 @@ class TestAnalyticsRelay:
         # TODO Delete relays first  from test data
         analytics: Analytics = Analytics()
 
-        relays: set[str] = analytics.discover_relays(
+        relays: list[Relay] = analytics.discover_relays(
             relay_seed_urls,
             100,
         )

@@ -21,15 +21,15 @@ class RelayService(BqService):
     def __init__(self, client) -> None:
         super().__init__(client)
 
-    def _parse_relays(self, result):
+    def _parse_relays(self, result) -> list[Relay]:
         if not result[0][0]:
             return []
 
         relays = json.loads(
             result[0][0]
-        )  # for RelaySQL.select_all_from  a single row of a json array of relays is returned
+        )  # for RelaySQL.select_all_from returns a single row of a json array of relays is returned
 
-        relay_objs = []
+        relay_objs: list[Relay] = []
         for r in relays:
             relay_objs.append(
                 Relay(
@@ -44,7 +44,7 @@ class RelayService(BqService):
 
         return relay_objs
 
-    def get_relays(self) -> list[Any]:
+    def get_relays(self) -> list[Relay]:
         result = list(
             self._bq.run_sql(
                 RelaySQL.select_all_from(
@@ -53,7 +53,7 @@ class RelayService(BqService):
             )
         )
 
-        relays = self._parse_relays(result) if result else []
+        relays: list[Relay] = self._parse_relays(result) if result else []
         return relays
 
     def save_relays(self, relays: list[Relay]):
@@ -62,17 +62,17 @@ class RelayService(BqService):
         )
         return self._bq.run_sql(query)
 
-    def save_events(self, events: list[Event]):
-        query: str = EventsSQL.insert_events(
-            ConfigSettings.bq_dataset_id, ConfigSettings.bq_event_table_id, events
-        )
-        return self._bq.run_sql(query)
-
     def update_relays(
         self, dataset_id: str, relays: list[Relay]
     ) -> Union[RowIterator, None]:
         query = RelaySQL.update_relays(dataset_id, relays)
         return self._bq.run_sql(query)
+
+    def upsert_relays(
+        self, dataset_id: str, relays: list[Relay]
+    ) -> Union[RowIterator, None]:
+        if not self._relays:
+            self._relay
 
 
 class EventService(BqService):
