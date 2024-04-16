@@ -1,5 +1,6 @@
 import json
 import socket
+import sys
 import time
 from dataclasses import dataclass
 from queue import Queue
@@ -74,6 +75,7 @@ class Relay:
 
             url = f'ws://{url}' if ('wss://' not in url and 'ws://' not in url) else url
             self._validate_url(url)
+            self.url = url
         except ValidationError:
             raise
 
@@ -241,10 +243,21 @@ class Relay:
         }
 
     def refresh_geo_ip_info(self):
-        result = Relay.get_relay_geo_info([self.url.replace('wss://', '')])[0]
-        self.country_code = result['country_code3']
-        self.latitude = result['latitude']
-        self.longitude = result['longitude']
+        response = Relay.get_relay_geo_info([self.url.replace('wss://', '')])
+        if response:
+            result = response[0]
+            self.country_code = result['country_code3']
+            latitude = None
+            longitude = None
+
+            if result['latitude'] and result['longitude']:
+                try:
+                    latitude = float(result['latitude'])
+                    longitude = float(result['longitude'])
+                except ValueError:
+                    pass
+            self.latitude = latitude
+            self.longitude = longitude
 
     @staticmethod
     def get_geo_info(ip_addresses):

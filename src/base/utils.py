@@ -31,7 +31,8 @@ def normalise_string(string: str):
 
 
 def clean_url(url: str) -> str:
-    return normalise_string(url).lower().replace('%20', '')
+    u: str = normalise_string(url).lower().replace('%20', '')
+    return re.sub(r'/+$', '', u)
 
 
 logger: Logger = init()

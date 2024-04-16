@@ -73,7 +73,6 @@ class RelayManager:
     def remove_relay(self, url: str):
         with self.lock:
             if url in self.relays:
-                logger.debug(f'closing {url}')
                 relay_future = self.relays.pop(url)
                 relay: Relay = relay_future['relay']
                 relay.close()

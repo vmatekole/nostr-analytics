@@ -12,6 +12,7 @@ from confluent_kafka.serialization import (
 )
 from rich import print
 
+from base.utils import logger
 from kafka.schemas import KafkaBase
 from nostr.event import Event, EventKind
 from nostr.relay import Relay
@@ -44,10 +45,10 @@ class NostrProducer(KafkaBase):
             schema_str=schema.avro_schema(),
         )
 
-    def serialise_key_topic(self, topic_name: str, key: str, event_topic):
+    def serialise_key_topic(self, topic_name: str, key: str, topic):
         key = self._string_serializer(key)
         mesg = self._avro_serializer(
-            asdict(event_topic),
+            asdict(topic),
             SerializationContext(topic=topic_name, field=MessageField.VALUE),
         )
         return key, mesg
@@ -77,8 +78,16 @@ class NostrProducer(KafkaBase):
         a: Analytics = self._a
 
         relays: list[Relay] = a.discover_relays(urls, min_relays_to_find)
-
-        topics: list[RelayTopic] = [RelayTopic(r.url) for r in list(relays)]
+        topics: list[RelayTopic] = [
+            RelayTopic(
+                url=r.url,
+                name=r.name,
+                country_code=r.country_code,
+                latitude=r.latitude,
+                longitude=r.longitude,
+            )
+            for r in relays
+        ]
 
         a.close()
         return topics

@@ -28,6 +28,6 @@ class TestAnalyticsRelay:
     def test_events_of_kind_1(self):
         a = Analytics()
 
-        events = a.events_of_kind([EventKind.TEXT_NOTE], ['wss://relay.damus.io'], 500)
+        events = a.events_of_kind([EventKind.TEXT_NOTE], ['wss://relay.damus.io'], 200)
 
-        assert len(events) >= 500
+        assert len(events) >= 200

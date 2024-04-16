@@ -60,9 +60,10 @@ class RelayTopic(AvroModel):
     longitude: float = None
 
     @staticmethod
-    def parse_relay_from_topic(relay_topics: list['RelayTopic']) -> list[Event]:
+    def parse_relay_from_topic(relay_topics: list['RelayTopic']) -> list[Relay]:
         relays: list[Relay] = []
         for t in relay_topics:
+
             e = Relay(
                 url=t.url,
                 name=t.name,

@@ -6,7 +6,7 @@ from typing import Set, Union
 from google.cloud import bigquery
 from pydantic import ValidationError
 
-from base.utils import logger
+from base.utils import clean_url, logger
 from nostr.event import Event, EventKind
 from nostr.filter import Filter, Filters
 from nostr.message_pool import EventMessage
@@ -53,13 +53,13 @@ class Analytics:
 
     def _create_relays(self, urls: list[str]):
         relays: list[Relay] = []
-        try:
-            for url in urls:
+        for url in urls:
+            try:
                 relay = Relay(url)
                 relays.append(relay)
-            return relays
-        except Exception as e:
-            logger.debug(f'#kjhkjh8: Invalid relay url {e}')
+            except Exception as e:
+                logger.debug(f'#kjhkjh8: Invalid relay url {e}')
+        return relays
 
     def _add_relays_to_bq(self, urls: list[str]):
         relays: list[Relay] | None = self._create_relays(urls)
@@ -114,10 +114,10 @@ class Analytics:
                         if getattr(
                             discovered_relays, 'items', None
                         ):  # valid json array is not guaranteed
-                            urls: set[str] = {
-                                relay[0] for relay in discovered_relays.items()
-                            }
-                            urls.add(event_msg.url)
+                            for relay in discovered_relays.items():
+                                urls.add(clean_url(relay[0]))
+
+                            urls.add(clean_url(event_msg.url))
 
                         else:
                             logger.debug(
@@ -134,14 +134,16 @@ class Analytics:
                     )
 
             # TODO find better why of handling latency in connections
-            time.sleep(2)
-
-        # Cleanup
-        self.close()
+            logger.debug(f'Found: {len(urls)}')
+            time.sleep(0.2)
 
         total: float = time.time() - start_time
         relays: Union[list[Relay], None] = self._create_relays(list(urls))
-        logger.info(f'Discovered {len(relays)} relays  took {total}s')
+
+        logger.info(f'Discovered {len(urls)} relays  took {total}s')
+
+        # Cleanup
+        self.close()
 
         return relays
 
