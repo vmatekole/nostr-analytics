@@ -53,16 +53,19 @@ class TestKafkaProducer:
         mocker.patch.object(NostrProducer, '_delivery_report')
 
         try:
-            nostr_producer: NostrProducer = NostrProducer(RelayTopic)
+            nostr_producer: NostrProducer = NostrProducer(
+                ConfigSettings.relay_kafka_topic, RelayTopic
+            )
             topic_name: str = ConfigSettings.relay_kafka_topic
             relay_topic: RelayTopic = RelayTopic(
                 url=relay_obj_damus.url,
                 name=relay_obj_damus.name,
+                country_code=relay_obj_damus.country_code,
                 latitude=relay_obj_damus.latitude,
                 longitude=relay_obj_damus.longitude,
             )
 
-            nostr_producer.produce(topic_name=topic_name, topics=[relay_topic])
+            nostr_producer.produce(topics=[relay_topic])
             nostr_producer._delivery_report.assert_called_once()  # type: ignore
 
         except Exception:
@@ -109,7 +112,7 @@ class TestKafkaConsumer:
                 assert isinstance(event_topic, EventTopic)
                 break
 
-    def test_consume_1_relay_topic(self):
+    def test_consume_1_relay_topic(self, relay_obj_damus):
         topic_names: list[str] = [ConfigSettings.relay_kafka_topic]
         nostr_consumer: NostrConsumer = NostrConsumer(topic_names, RelayTopic)
 
@@ -124,8 +127,15 @@ class TestKafkaConsumer:
             key, msg = nostr_consumer.consume()
             if msg is not None:
                 logger.debug(f'key: {key} topic: {msg}')
-                event_topic = RelayTopic(**msg)
-                assert isinstance(event_topic, RelayTopic)
+                relay_topic = RelayTopic(**msg)
+                assert isinstance(relay_topic, RelayTopic)
+                assert relay_topic == RelayTopic(
+                    url='wss://relay.damus.io',
+                    name='damus',
+                    country_code='US',
+                    latitude=7.01,
+                    longitude=13.12,
+                )
                 break
 
     def test_consume_wrong_topic_1(self):

@@ -6,6 +6,7 @@ from dataclasses_avroschema import AvroModel
 
 from base.config import ConfigSettings, Settings
 from nostr.event import Event
+from nostr.relay import Relay
 from services.analytics import Analytics
 
 
@@ -54,5 +55,22 @@ class EventTopic(AvroModel):
 class RelayTopic(AvroModel):
     url: str
     name: str = None
+    country_code: str = None
     latitude: float = None
     longitude: float = None
+
+    @staticmethod
+    def parse_relay_from_topic(relay_topics: list['RelayTopic']) -> list[Event]:
+        relays: list[Relay] = []
+        for t in relay_topics:
+            e = Relay(
+                url=t.url,
+                name=t.name,
+                latitude=t.latitude,
+                longitude=t.longitude,
+                country_code=t.country_code,
+            )
+
+            relays.append(e)
+
+        return relays

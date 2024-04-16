@@ -54,7 +54,7 @@ class TestEventAnalytics:
         nostr_producer._delivery_report.assert_called()  # type: ignore
         assert len(topics) >= 10
 
-    def test_producing_and_save_events(self, mocker):
+    def test_producing_and_saving_events(self, mocker):
         topic_names: list[str] = [ConfigSettings.event_kafka_topic]
         bq_service = bq.EventService(bigquery.Client())
         MAX_EVENTS = 10
@@ -86,10 +86,46 @@ class TestEventAnalytics:
                     assert isinstance(event_topic, EventTopic)
                     num_events += 1
             events: list[Event] = EventTopic.parse_event_from_topic(event_topics)
-            bq_service.save_events(events)
+            assert bq_service.save_events(events)
 
         except Exception:
             assert False
 
         nostr_producer._delivery_report.assert_called()  # type: ignore
         assert num_events >= MAX_EVENTS
+
+    def test_producing_and_saving_relays(self, mocker):
+        topic_names: list[str] = [ConfigSettings.relay_kafka_topic]
+        bq_service = bq.RelayService(bigquery.Client())
+        MAX_RELAYS = 10
+
+        mocker.patch.object(NostrProducer, '_delivery_report')
+
+        nostr_producer = NostrProducer(topic_names[0], RelayTopic)
+        nostr_consumer = NostrConsumer(topic_names, RelayTopic)
+
+        try:
+            topics: list[EventTopic] = nostr_producer.topic_relays(
+                urls=['wss://relay.damus.io'],
+            )
+
+            nostr_producer.produce(topics)
+            nostr_consumer.consume()
+
+            num_relays = 0
+            relay_topics = []
+
+            while num_relays <= MAX_RELAYS:
+                key, msg = nostr_consumer.consume()
+                if msg is not None:
+                    logger.debug(f'key: {key} topic: {msg}')
+                    relay_topic = RelayTopic(**msg)
+                    relay_topics.append(relay_topic)
+                    assert isinstance(relay_topic, RelayTopic)
+                    num_relays += 1
+            relays: list[Event] = RelayTopic.parse_relay_from_topic(relay_topics)
+            assert bq_service.save_relays(relays)
+        except Exception:
+            assert False
+
+        nostr_producer._delivery_report.assert_called()  # type: ignore

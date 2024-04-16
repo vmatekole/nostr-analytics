@@ -19,7 +19,13 @@ def event_input_data_1():
 
 @pytest.fixture(scope='class')
 def relay_obj_damus():
-    return Relay('wss://relay.damus.io', name='damus', latitude=7.01, longitude=13.12)
+    return Relay(
+        'wss://relay.damus.io',
+        name='damus',
+        country_code='US',
+        latitude=7.01,
+        longitude=13.12,
+    )
 
 
 @pytest.fixture(scope='class')

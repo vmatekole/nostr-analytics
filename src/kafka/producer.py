@@ -77,6 +77,7 @@ class NostrProducer(KafkaBase):
 
         topics = [RelayTopic(r.url) for r in list(relays)]
 
+        a.close()
         return topics
 
     def topic_events_of_kind(
@@ -100,4 +101,5 @@ class NostrProducer(KafkaBase):
             for e in events
         ]
 
+        a.close()
         return topics
