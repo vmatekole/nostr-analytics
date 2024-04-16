@@ -1,6 +1,3 @@
-import time
-from unittest.mock import Mock
-
 from google.cloud import bigquery
 
 from base.config import ConfigSettings
@@ -9,7 +6,6 @@ from kafka.consumer import NostrConsumer
 from kafka.producer import NostrProducer
 from kafka.schemas import EventTopic, RelayTopic
 from nostr.event import Event, EventKind
-from nostr.relay import Relay
 from services import bq
 
 
@@ -34,7 +30,6 @@ class TestRelayAnalytics:
 
 class TestEventAnalytics:
     def test_producing_event_topics(self, mocker):
-
         mocker.patch.object(NostrProducer, '_delivery_report')
 
         nostr_producer = NostrProducer(EventTopic)
@@ -125,6 +120,7 @@ class TestEventAnalytics:
                     num_relays += 1
             relays: list[Event] = RelayTopic.parse_relay_from_topic(relay_topics)
             assert bq_service.save_relays(relays)
+
         except Exception:
             assert False
 

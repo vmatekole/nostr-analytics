@@ -70,8 +70,7 @@ class Relay:
 
     def __post_init__(self):
         try:
-            url: str = self.url.lower()
-            url = clean_url(url)
+            url = clean_url(self.url)
 
             url = f'ws://{url}' if ('wss://' not in url and 'ws://' not in url) else url
             self._validate_url(url)
