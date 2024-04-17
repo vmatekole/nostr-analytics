@@ -72,7 +72,7 @@ class RelayService(BqService):
         self, dataset_id: str, relays: list[Relay]
     ) -> Union[RowIterator, None]:
         if not self._relays:
-            self._relay
+            self._relays: list[Relay] = self.get_relays()
 
 
 class EventService(BqService):

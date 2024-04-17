@@ -5,12 +5,9 @@
 
 -- Replace `your_project` with your actual project name
 {{ config(
-  materialized='table'
+  materialized='table',
+  unique_key='url'
 ) }}
 
-with relay_location as (
-    SELECT url, country_code, CONCAT(latitude, ',', longitude) AS location, CURRENT_TIMESTAMP() as inserted_at, policy.read, policy.write
-    FROM`nostr_production_data.relay`
-
-)
-select * from relay_location
+SELECT url, country_code, CONCAT(latitude, ',', longitude) AS location, inserted_at, policy.read, policy.write
+FROM `nostr_production_data.relay`

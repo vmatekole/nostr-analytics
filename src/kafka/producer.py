@@ -27,6 +27,7 @@ class NostrProducer(KafkaBase):
     ) -> None:
         super().__init__()
 
+        self._stream_on = False
         self._string_serializer = StringSerializer('utf_8')
         self._topic_name: str = topic_name
 
@@ -59,7 +60,7 @@ class NostrProducer(KafkaBase):
         else:
             print(f'Message delivered to {msg.topic()} [{msg.partition()}]')
 
-    def produce(self, topics: Union[RelayTopic, EventTopic]):
+    def produce(self, topics: Union[list[RelayTopic], list[EventTopic]]):
         for e in topics:
             key, ser_event_topic = self.serialise_key_topic(
                 self._topic_name, str(uuid.uuid4()), e
@@ -92,13 +93,13 @@ class NostrProducer(KafkaBase):
         a.close()
         return topics
 
-    def topic_events_of_kind(
-        self, kinds: list[EventKind], relay_urls: list[str], max_events: int = -1
-    ) -> list[any]:
+    def event_topics_of_kind(
+        self, kinds: list[EventKind], relay_urls: list[str], batch_size: int = 1
+    ) -> list[RelayTopic]:
         a: Analytics = self._a
 
         events: list[Event] = a.events_of_kind(
-            kinds=kinds, relay_urls=relay_urls, max_events=max_events
+            kinds=kinds, relay_urls=relay_urls, max_events=batch_size
         )
 
         topics: list[EventTopic] = [
@@ -113,5 +114,13 @@ class NostrProducer(KafkaBase):
             for e in events
         ]
 
-        a.close()
         return topics
+
+    def stream_events(self, kinds: list[EventKind], relay_urls: list[str]):
+        self._stream_on = True
+        while self._stream_on:
+            topics: list[RelayTopic] = self.event_topics_of_kind(kinds, relay_urls)
+            self.produce(topics)
+
+    def close(self):
+        self._stream_on = False

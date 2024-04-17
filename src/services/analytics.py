@@ -25,7 +25,7 @@ class Analytics:
     def __del__(self):
         self.close()
 
-    def _connect_to_relays(self, urls: list[str], filters: list[Filters]):
+    def _connect_to_relays(self, urls: list[str], filters: Filters):
         for url in urls:
             self._relay_manager.add_relay(url)
             self._relay_manager.add_subscription_on_relay(
@@ -150,7 +150,7 @@ class Analytics:
     def events_of_kind(
         self, kinds: list[EventKind], relay_urls: list[str], max_events=-1
     ) -> Union[list[Event], None]:
-        filters = Filters(initlist=[Filter(kinds=[EventKind.TEXT_NOTE])])
+        filters = Filters(initlist=[Filter(kinds=kinds)])
         self._connect_to_relays(relay_urls, filters)
 
         num_of_events = 0
@@ -166,9 +166,9 @@ class Analytics:
                     events.append(event_msg.event)
                     num_of_events += 1
                 else:
+                    logger.info(f'Num of events {num_of_events}')
                     if not max_events == -1 and num_of_events >= max_events:
                         break
-
             self.close()
 
             return events

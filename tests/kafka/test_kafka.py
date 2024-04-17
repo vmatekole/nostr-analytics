@@ -27,7 +27,7 @@ class TestKafkaProducer:
         producer: NostrProducer = NostrProducer()
 
         ser_key, ser_topic = producer.serialise_key_topic(
-            topic_name=topic_name, key=key, event_topic=event_topic
+            topic_name=topic_name, key=key, topic=event_topic
         )
 
         assert ser_key == b'nostr-key'
@@ -74,7 +74,7 @@ class TestKafkaProducer:
     def test_create_event_topics(self):
         nostr_producer = NostrProducer(EventTopic)
 
-        topics: list[EventTopic] = nostr_producer.topic_events_of_kind(
+        topics: list[EventTopic] = nostr_producer.event_topics_of_kind(
             kinds=[EventKind(3)], relay_urls=['wss://relay.damus.io'], max_events=10
         )
 
