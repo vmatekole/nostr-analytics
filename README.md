@@ -19,9 +19,10 @@ Data on Decentralised social networks is sharded and distributed across multiple
 - Apache Kafka for data streaming
 - BigQuery for Data Warehousing
 - DBT for data modelling
-- [MetaBase](https://www.metabase.com/) for dashboards
-  - Number of active relays displayed on a geographic map
-  - Number of events  [kinds](https://nostrdata.github.io/kinds/)
+- [Looker Studio](https://lookerstudio.google.com) for dashboards
+  - Number of active relays distributed on a geographic map
+  - Real-time dashboard of events of kinds 1,7 and 30023  [kinds](https://nostrdata.github.io/kinds/)
+![alt text](./analytics.jpg)
 
 ## Installation
 1. Clone this repo!
