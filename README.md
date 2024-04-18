@@ -33,7 +33,9 @@ Data on Decentralised social networks is sharded and distributed across multiple
 
 3. Run commands:
 
-```$ docker run -it vmatekole/nostr-analytics bash ```
+```
+$ docker run -it vmatekole/nostr-analytics bash
+```
 ## Architecture
 ![alt text](./architecture.png)
 ## Future considerations
