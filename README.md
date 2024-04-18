@@ -49,12 +49,12 @@ Run commands:
 
 Nostr Events producer:
 ```
-docker compose -f docker-compose.yml up producer_events
+docker compose -f docker-compose.yml up produce_events
 ```
 
 Nostr Events consumer:
 ```
-docker compose -f docker-compose.yml up consumer_events
+docker compose -f docker-compose.yml up process_events
 ```
 
 Nostr Relays producer:
