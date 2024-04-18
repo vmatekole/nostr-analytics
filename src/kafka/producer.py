@@ -56,9 +56,9 @@ class NostrProducer(KafkaBase):
 
     def _delivery_report(self, err, msg):
         if err is not None:
-            print(f'Message delivery failed: {err}')
+            logger.debug(f'Message delivery failed: {err}')
         else:
-            print(f'Message delivered to {msg.topic()} [{msg.partition()}]')
+            logger.debug(f'Message delivered to {msg.topic()} [{msg.partition()}]')
 
     def produce(self, topics: Union[list[RelayTopic], list[EventTopic]]):
         for e in topics:
@@ -121,6 +121,12 @@ class NostrProducer(KafkaBase):
         while self._stream_on:
             topics: list[RelayTopic] = self.event_topics_of_kind(kinds, relay_urls)
             self.produce(topics)
+
+    def stream_relays(self, relay_urls: list[str]):
+        self._stream_on = True
+        while self._stream_on:
+            relay_topics = self.discover_relays(relay_urls)
+            self.produce(relay_topics)
 
     def close(self):
         self._stream_on = False

@@ -9,10 +9,13 @@ from confluent_kafka.serialization import (
 )
 from google.cloud import bigquery
 
+from base.config import ConfigSettings
 from base.utils import logger
+from kafka.producer import NostrProducer
 from kafka.schemas import EventTopic, KafkaBase, RelayTopic
 from nostr.event import Event
-from services.bq import BqService, EventService
+from nostr.relay import Relay
+from services.bq import BqService, EventService, RelayService
 
 
 class NostrConsumer(KafkaBase):
@@ -41,7 +44,8 @@ class NostrConsumer(KafkaBase):
             }
         )
 
-        self._bq_service = EventService(bigquery.Client())
+        self._bq_event_service = EventService(bigquery.Client())
+        self._bq_relay_service = RelayService(bigquery.Client())
 
         self._consumer.subscribe(topic_names)
 
@@ -72,11 +76,31 @@ class NostrConsumer(KafkaBase):
                 batch_size = len(bq_event_batch)
                 if batch_size >= bq_batch_size:
                     for start in range(0, batch_size, bq_batch_size):
-                        self._bq_service.save_events(
+                        self._bq_event_service.save_events(
                             bq_event_batch[start : start + bq_batch_size]
                         )
 
-                    bq_event_batch = []
+                    bq_event_batch.clear()
+
+    def consume_relays(self, bq_batch_size=10):
+        bq_relay_batch: list[Relay] = []
+        self._consume = True
+
+        while self._consume:
+            key, msg = self.consume()
+            if msg is not None:
+                relay_topic = RelayTopic(**msg)
+                relays: list[Event] = RelayTopic.parse_relay_from_topic([relay_topic])
+                bq_relay_batch.append(relays[0])
+
+            batch_size = len(bq_relay_batch)
+            if batch_size >= bq_batch_size:
+                for start in range(0, batch_size, bq_batch_size):
+                    self._bq_relay_service.save_relays(
+                        relays[start : start + bq_batch_size]
+                    )
+
+                bq_relay_batch.clear()
 
     def close(self) -> None:
         self._consume = False
