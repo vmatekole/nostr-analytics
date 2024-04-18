@@ -5,7 +5,7 @@ services:
     working_dir: /app
     volumes:
       - .env.dev:/app/.env.prd
-      - /Users/PI/code/datatalks/noble-velocity-411717-59617a8fb872-terraform.json:/app/gcp_key.json
+      - gcp_key_on_your_host.json:/app/gcp_key.json
     env_file:
       - .env.docker
     command: ["produce-events"]
@@ -13,7 +13,7 @@ services:
     image: vmatekole/nostr-analytics
     volumes:
       - .env.dev:/app/.env.prd
-      - /Users/PI/code/datatalks/noble-velocity-411717-59617a8fb872-terraform.json:/app/gcp_key.json
+      - gcp_key_on_your_host.json:/app/gcp_key.json
     env_file:
       - .env.docker
     command: ["process-events"]
@@ -21,7 +21,7 @@ services:
     image: vmatekole/nostr-analytics
     volumes:
       - .env.dev:/app/.env.prd
-      - /Users/PI/code/datatalks/noble-velocity-411717-59617a8fb872-terraform.json:/app/gcp_key.json
+      - gcp_key_on_your_host.json:/app/gcp_key.json
     env_file:
       - .env.docker
     command: ["produce-relays"]
@@ -29,7 +29,7 @@ services:
     image: vmatekole/nostr-analytics
     volumes:
       - .env.dev:/app/.env.prd
-      - /Users/PI/code/datatalks/noble-velocity-411717-59617a8fb872-terraform.json:/app/gcp_key.json
+      - gcp_key_on_your_host.json:/app/gcp_key.json
     env_file:
       - .env.docker
     command: ["process-relays"]
