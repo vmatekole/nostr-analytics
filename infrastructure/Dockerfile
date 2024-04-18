@@ -1,26 +1,21 @@
-ARG PYTHON_BASE=3.10-slim
-# build stage
-FROM python:$PYTHON_BASE AS builder
+# Use the official Python image as the base image
+FROM python:3.9
 
-# install PDM
-RUN pip install -U pdm
-# disable update check
-ENV PDM_CHECK_UPDATE=false
-# copy files
-COPY pyproject.toml pdm.lock README.md /app/
-COPY src/ /app/src
-COPY tests/ /app/tests
-
-# install dependencies and app into the local packages directory
+# Set the working directory to /app
 WORKDIR /app
-RUN pdm install --check --prod --no-editable
 
-# run stage
-FROM python:$PYTHON_BASE
-
-# retrieve packages from build stage
-COPY --from=builder /app/.venv/ /app/.venv
-ENV PATH="/app/.venv/bin:$PATH"
-# set command/entrypoint, adapt to fit your needs
+# Copy the project files into the container
+COPY pyproject.toml pdm.lock README.md /app/
 COPY src /app/src
-CMD ["python", "src/__main__.py"]
+COPY orchestration /app/orchestration
+COPY tests /app/tests
+
+# Install PDM
+RUN pip install --no-cache-dir pdm
+
+# Install project dependencies using PDM
+RUN pdm install
+
+COPY entrypoint.sh /app
+
+ENTRYPOINT [ "./entrypoint.sh" ]

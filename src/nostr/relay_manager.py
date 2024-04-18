@@ -1,3 +1,6 @@
+"""
+    The basis of the code below was taken from https://github.com/jeffthibault/python-nostr with some modifications.
+"""
 import json
 import threading
 import time

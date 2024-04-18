@@ -94,9 +94,6 @@ class Event(ModelBase):
     def verify(self) -> bool:
         pass
 
-    """_summary_
-    """
-
     def to_message(self) -> str:
         return json.dumps(
             [

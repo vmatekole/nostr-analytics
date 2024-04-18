@@ -67,13 +67,6 @@ class RelaySQL:
 
 
 class EventsSQL:
-
-    """_summary_
-
-    Returns:
-        _type_: _description_
-    """
-
     @staticmethod
     def insert_events(dataset_id: str, table_id: str, events: list[Event]) -> str:
         events_to_insert = []

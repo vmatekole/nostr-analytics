@@ -1,3 +1,8 @@
+"""
+    The basis of the code below was taken from https://github.com/jeffthibault/python-nostr with some modifications.
+"""
+
+
 class ClientMessageType:
     EVENT = 'EVENT'
     REQUEST = 'REQ'

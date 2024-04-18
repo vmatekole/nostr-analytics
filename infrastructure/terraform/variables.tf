@@ -39,7 +39,7 @@ variable "event_schema" {
   {
     "name": "inserted_at",
     "type": "TIMESTAMP",
-    "mode": "NULLABLE",
+    "mode": "REQUIRED",
     "description": "DEFAULT CURRENT_TIMESTAMP()"
   },
   {
