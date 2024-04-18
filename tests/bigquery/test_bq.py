@@ -1,3 +1,4 @@
+import re
 import time
 from typing import Any, Union
 
@@ -123,7 +124,7 @@ class TestBiqQuery:
 
         assert wine_relay == {
             'name': relay_name,
-            'policy': RelayPolicy(should_read=False, should_write=False),
+            'policy': RelayPolicy(should_read=True, should_write=False),
         }
 
     @pytest.mark.skipif(
@@ -143,11 +144,10 @@ class TestBiqQuery:
         ] = relay_service.update_relays(ConfigSettings.bq_dataset_id, relays)
         result_2: list[Any] = relay_service.get_relays()
 
-        updated_relay = next(
-            relay
-            for relay in result_2
-            if 'name' in relay and relay['name'] == updated_name
-        )
+        updated_relay = None
+        for relay in result_2:
+            if relay.name and relay.name == updated_name:
+                updated_relay = relay
 
         # assert type(result_1) == _EmptyRowIterator
-        assert updated_relay['name'] == updated_name
+        assert updated_relay.name == updated_name

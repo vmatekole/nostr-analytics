@@ -36,7 +36,7 @@ class TestNostrNetwork:
         relay_manager: RelayManager = RelayManager()
         relay_manager.add_relay(reliable_relay_url)
 
-        result: Relay = relay_manager.relays[reliable_relay_url]
+        result: Relay = relay_manager.relays[reliable_relay_url]['relay']
 
         assert result.ws.sock.connected == True
 
@@ -53,14 +53,17 @@ class TestNostrNetwork:
         filters = Filters(initlist=[Filter(kinds=[EventKind.CONTACTS])])
         relay_manager.add_relay(reliable_relay_url)
 
-        relay_manager.add_subscription_on_all_relays(id=uuid.uuid4(), filters=filters)
+        relay_manager.add_subscription_on_all_relays(
+            id=str(uuid.uuid4()), filters=filters
+        )
         event_msg: EventMessage = None
         result: list = None
         while True:
             if relay_manager.message_pool.has_events():
                 event_msg: EventMessage = relay_manager.message_pool.get_event()
-                result: dict = json.loads(event_msg.event.content)
-                break
+                if not event_msg.event.content == '':
+                    result: dict = json.loads(event_msg.event.content)
+                    break
         assert len(result) > 7
         assert result.get(reliable_relay_url) == reliable_relay_policy
 
@@ -97,7 +100,7 @@ class TestNostrNetwork:
         relay_manager: RelayManager = RelayManager()
         relay_manager.add_relay(reliable_relay_url)
 
-        result: Relay = relay_manager.relays[reliable_relay_url]
+        result: Relay = relay_manager.relays[reliable_relay_url]['relay']
 
         assert result.country_code == 'USA'
 

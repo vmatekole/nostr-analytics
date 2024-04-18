@@ -26,7 +26,7 @@ class TestRelayAnalytics:
                 urls=['wss://relay.damus.io']
             )
             topics = topics[:10]
-            nostr_producer.produce(ConfigSettings.relay_kafka_topic, topics)
+            nostr_producer.produce(topics)
         except Exception:
             assert False
 
@@ -48,11 +48,11 @@ class TestEventAnalytics:
             topics: list[EventTopic] = nostr_producer.event_topics_of_kind(
                 kinds=[EventKind(EventKind.CONTACTS)],
                 relay_urls=['wss://relay.damus.io'],
-                max_events=10,
+                batch_size=10,
             )
             topics = topics[:10]
 
-            nostr_producer.produce(ConfigSettings.event_kafka_topic, topics)
+            nostr_producer.produce(topics)
         except Exception:
             assert False
 
@@ -81,7 +81,7 @@ class TestEventAnalytics:
                     EventKind(EventKind.LONG_FORM_CONTENT),
                 ],
                 relay_urls=['wss://relay.damus.io', 'wss://nostr.wine'],
-                max_events=MAX_EVENTS,
+                batch_size=MAX_EVENTS,
             )
 
             nostr_producer.produce(topics)
@@ -153,22 +153,3 @@ class TestEventAnalytics:
             # assert True
 
         nostr_producer._delivery_report.assert_called()  # type: ignore
-
-    # def test_stream_events(self, mocker):
-    #     topic_names: list[str] = [ConfigSettings.event_kafka_topic]
-
-    #     # mocker.patch.object(NostrProducer, '_delivery_report')
-
-    #     nostr_producer = NostrProducer(topic_names[0], EventTopic)
-
-    #     nostr_producer.stream_events(kinds=[EventKind(EventKind.TEXT_NOTE), EventKind.REACTIONS, EventKind(EventKind.LONG_FORM_CONTENT)],
-    #                                  relay_urls=['wss://relay.damus.io', 'wss://nostr.wine'])
-
-    # def test_consume_events(self, mocker):
-    #     topic_names: list[str] = [ConfigSettings.event_kafka_topic]
-
-    #     # mocker.patch.object(NostrProducer, '_delivery_report')
-
-    #     nostr_consumer = NostrConsumer(topic_names, EventTopic)
-
-    #     nostr_consumer.consume_events()

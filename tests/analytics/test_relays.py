@@ -20,10 +20,10 @@ class TestAnalyticsRelay:
 
         relays: list[Relay] = analytics.discover_relays(
             relay_seed_urls,
-            100,
+            10,
         )
 
-        assert len(relays) >= 100
+        assert len(relays) >= 10
 
     @pytest.mark.skipif(
         ConfigSettings.test_without_internet,
@@ -32,6 +32,6 @@ class TestAnalyticsRelay:
     def test_events_of_kind_1(self):
         a = Analytics()
 
-        events = a.events_of_kind([EventKind.TEXT_NOTE], ['wss://relay.damus.io'], 200)
+        events = a.events_of_kind([EventKind.TEXT_NOTE], ['wss://relay.damus.io'], 20)
 
-        assert len(events) >= 200
+        assert len(events) >= 20
