@@ -22,12 +22,13 @@ Data on Decentralised social networks is sharded and distributed across multiple
 - [Looker Studio](https://lookerstudio.google.com) for dashboards
   - Number of active relays distributed on a geographic map
   - Real-time dashboard of events of kinds 1,7 and 30023  [kinds](https://nostrdata.github.io/kinds/)
+
 ![alt text](./analytics.jpg)
 
 ## Installation
 1. Clone this repo!
 
-2. Create free tier accounts on the following:
+2. Create free tier accounts for the following:
 - [BigQuery/GCP](https://cloud.google.com/bigquery?hl=en)
 - [Upstash(Kafka)](https://upstash.com/)
 - [IP Geolocation](https://ipgeolocation.io/documentation.html)
@@ -58,15 +59,13 @@ docker compose -f docker-compose.yml up consumer_events
 
 Nostr Relays producer:
 ```
-docker compose -f docker-compose.yml up producer_relays
+docker compose -f docker-compose.yml up produce_relays
 ```
-
 
 Nostr Relays consumer:
 ```
-docker compose -f docker-compose.yml up consumer_relays
+docker compose -f docker-compose.yml up process_relays
 ```
-
 
 DBT Transformation for dashboards:
 ```
@@ -84,9 +83,9 @@ cd tests && pytest
 ## Architecture
 ![alt text](./architecture.png)
 ## Future considerations
--
-
-## Usage
+- Installation / deployment needs streamlining
+- Remove dependency on IP Geolocation service
+- Prefect Orchestration could be refactored without Click and retain similar functionality
 
 ## Acknowledgements
 Thanks to [@jessthibault](https://github.com/jeffthibault) author of [python-nostr](https://github.com/jeffthibault/python-nostr) where the Nostr [base models](src/nostr/) were largely taken from and modified.
