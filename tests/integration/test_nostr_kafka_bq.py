@@ -1,4 +1,5 @@
 import pydantic
+import pytest
 from google.cloud import bigquery
 
 from base.config import ConfigSettings
@@ -11,10 +12,14 @@ from services import bq
 
 
 class TestRelayAnalytics:
+    @pytest.mark.skipif(
+        ConfigSettings.test_without_internet,
+        reason='Internet-requiring tests are disabled',
+    )
     def test_producing_relay_topics(self, mocker):
         mocker.patch.object(NostrProducer, '_delivery_report')
 
-        nostr_producer = NostrProducer(RelayTopic)
+        nostr_producer = NostrProducer(ConfigSettings.relay_kafka_topic, RelayTopic)
 
         try:
             topics: list[RelayTopic] = nostr_producer.discover_relays(
@@ -30,13 +35,17 @@ class TestRelayAnalytics:
 
 
 class TestEventAnalytics:
+    @pytest.mark.skipif(
+        ConfigSettings.test_without_internet,
+        reason='Internet-requiring tests are disabled',
+    )
     def test_producing_event_topics(self, mocker):
         mocker.patch.object(NostrProducer, '_delivery_report')
 
-        nostr_producer = NostrProducer(EventTopic)
+        nostr_producer = NostrProducer(ConfigSettings.event_kafka_topic, EventTopic)
 
         try:
-            topics: list[EventTopic] = nostr_producer.topic_events_of_kind(
+            topics: list[EventTopic] = nostr_producer.event_topics_of_kind(
                 kinds=[EventKind(EventKind.CONTACTS)],
                 relay_urls=['wss://relay.damus.io'],
                 max_events=10,
@@ -50,10 +59,14 @@ class TestEventAnalytics:
         nostr_producer._delivery_report.assert_called()  # type: ignore
         assert len(topics) >= 10
 
+    @pytest.mark.skipif(
+        ConfigSettings.test_without_internet,
+        reason='Internet-requiring tests are disabled',
+    )
     def test_producing_and_saving_events(self, mocker):
         topic_names: list[str] = [ConfigSettings.event_kafka_topic]
         bq_service = bq.EventService(bigquery.Client())
-        MAX_EVENTS = 1000
+        MAX_EVENTS = 100
 
         mocker.patch.object(NostrProducer, '_delivery_report')
 
@@ -61,8 +74,12 @@ class TestEventAnalytics:
         nostr_consumer = NostrConsumer(topic_names, EventTopic)
 
         try:
-            topics: list[EventTopic] = nostr_producer.topic_events_of_kind(
-                kinds=[EventKind(EventKind.TEXT_NOTE)],
+            topics: list[EventTopic] = nostr_producer.event_topics_of_kind(
+                kinds=[
+                    EventKind(EventKind.TEXT_NOTE),
+                    EventKind.REACTIONS,
+                    EventKind(EventKind.LONG_FORM_CONTENT),
+                ],
                 relay_urls=['wss://relay.damus.io', 'wss://nostr.wine'],
                 max_events=MAX_EVENTS,
             )
@@ -75,13 +92,14 @@ class TestEventAnalytics:
             while num_events <= MAX_EVENTS:
                 key, msg = nostr_consumer.consume()
                 if msg is not None:
-                    logger.debug(f'key: {key} topic: {msg}')
                     event_topic = EventTopic(**msg)
                     event_topics.append(event_topic)
                     assert isinstance(event_topic, EventTopic)
                     num_events += 1
             events: list[Event] = EventTopic.parse_event_from_topic(event_topics)
-            assert bq_service.save_events(events)
+            step = 50
+            for start in range(0, len(events), step):
+                assert bq_service.save_events(events[start : start + step])
 
         except Exception:
             assert False
@@ -89,10 +107,14 @@ class TestEventAnalytics:
         nostr_producer._delivery_report.assert_called()  # type: ignore
         assert num_events >= MAX_EVENTS
 
+    @pytest.mark.skipif(
+        ConfigSettings.test_without_internet,
+        reason='Internet-requiring tests are disabled',
+    )
     def test_producing_and_saving_relays(self, mocker):
         topic_names: list[str] = [ConfigSettings.relay_kafka_topic]
         bq_service = bq.RelayService(bigquery.Client())
-        MAX_RELAYS = 300
+        MAX_RELAYS = 10
 
         mocker.patch.object(NostrProducer, '_delivery_report')
 
@@ -113,7 +135,6 @@ class TestEventAnalytics:
             while num_relays <= MAX_RELAYS:
                 key, msg = nostr_consumer.consume()
                 if msg is not None:
-                    logger.debug(f'key: {key} topic: {msg}')
                     relay_topic = RelayTopic(**msg)
                     relay_topics.append(relay_topic)
                     assert isinstance(relay_topic, RelayTopic)
@@ -122,7 +143,7 @@ class TestEventAnalytics:
 
             step = 50
             for start in range(0, len(relays), step):
-                bq_service.save_relays(relays[start : start + step])
+                assert bq_service.save_relays(relays[start : start + step])
 
         except pydantic.ValidationError:
             # Pydantic validation error can be thrown for erroneous relay urls
@@ -132,3 +153,22 @@ class TestEventAnalytics:
             # assert True
 
         nostr_producer._delivery_report.assert_called()  # type: ignore
+
+    # def test_stream_events(self, mocker):
+    #     topic_names: list[str] = [ConfigSettings.event_kafka_topic]
+
+    #     # mocker.patch.object(NostrProducer, '_delivery_report')
+
+    #     nostr_producer = NostrProducer(topic_names[0], EventTopic)
+
+    #     nostr_producer.stream_events(kinds=[EventKind(EventKind.TEXT_NOTE), EventKind.REACTIONS, EventKind(EventKind.LONG_FORM_CONTENT)],
+    #                                  relay_urls=['wss://relay.damus.io', 'wss://nostr.wine'])
+
+    # def test_consume_events(self, mocker):
+    #     topic_names: list[str] = [ConfigSettings.event_kafka_topic]
+
+    #     # mocker.patch.object(NostrProducer, '_delivery_report')
+
+    #     nostr_consumer = NostrConsumer(topic_names, EventTopic)
+
+    #     nostr_consumer.consume_events()

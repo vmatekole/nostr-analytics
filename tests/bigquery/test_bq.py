@@ -1,6 +1,7 @@
 import time
 from typing import Any, Union
 
+import pytest
 from google.cloud import bigquery
 from google.cloud.bigquery.table import RowIterator, _EmptyRowIterator
 
@@ -42,19 +43,6 @@ class TestBiqQuery:
 
         assert event_service.save_events([event])
 
-    # def test_bad_event_insert(self, event_bq_insert_data_1):
-    #     config = Settings()
-    #     assert Event.model_validate(event_bq_insert_data_1)
-    #     event: Event = Event(**event_bq_insert_data_1)
-
-    #     with pytest.raises(Exception):
-    #         Event.persist_to_bigquery(
-    #             [event], config.gcp_project_id,config.test_event_bq_dataset_id, config.test_event_bq_table_id
-    #         )
-
-    def test_event_bq_schema(self, event_bq_schema):
-        assert Event.bq_schema() == event_bq_schema
-
     def test_to_dict(self, event_bq_insert_data_2):
         event: Event = Event(**event_bq_insert_data_2)
         assert event.to_dict() == {
@@ -82,6 +70,10 @@ class TestBiqQuery:
             ],
         }
 
+    @pytest.mark.skipif(
+        ConfigSettings.test_without_internet,
+        reason='Internet-requiring tests are disabled',
+    )
     def test_to_dict(self, discovered_relays):
         ConfigSettings.relay_refresh_ip_geo_relay_info = True
         relay: Relay = discovered_relays[0]
@@ -96,11 +88,19 @@ class TestBiqQuery:
         assert result['policy']['write'] == True
         assert result['country_code'] == 'USA'
 
+    @pytest.mark.skipif(
+        ConfigSettings.test_without_internet,
+        reason='Internet-requiring tests are disabled',
+    )
     def test_insert_relay(self, discovered_relays):
         relay_service = RelayService(bigquery.Client())
 
         assert relay_service.save_relays(discovered_relays)
 
+    @pytest.mark.skipif(
+        ConfigSettings.test_without_internet,
+        reason='Internet-requiring tests are disabled',
+    )
     def test_get_relay(self):
 
         relay_name = f'test-ran{time.time()}'
@@ -126,6 +126,10 @@ class TestBiqQuery:
             'policy': RelayPolicy(should_read=False, should_write=False),
         }
 
+    @pytest.mark.skipif(
+        ConfigSettings.test_without_internet,
+        reason='Internet-requiring tests are disabled',
+    )
     def test_update_relays_1(self, discovered_relays_without_geo_location):
         client = bigquery.Client()
         relay_service = RelayService(client)

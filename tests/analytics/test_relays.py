@@ -25,6 +25,10 @@ class TestAnalyticsRelay:
 
         assert len(relays) >= 100
 
+    @pytest.mark.skipif(
+        ConfigSettings.test_without_internet,
+        reason='Internet-requiring tests are disabled',
+    )
     def test_events_of_kind_1(self):
         a = Analytics()
 

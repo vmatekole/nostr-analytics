@@ -1,3 +1,5 @@
+import pytest
+
 from base.config import ConfigSettings, Settings
 from base.utils import normalise_string
 from bigquery.sql import RelaySQL
@@ -7,7 +9,13 @@ from .fixtures import discovered_relays
 
 
 class TestSQL:
+    @pytest.mark.skipif(
+        ConfigSettings.test_without_internet,
+        reason='Internet-requiring tests are disabled',
+    )
     def test_update_relays_sql(self, discovered_relays: list[Relay]):
+
+        ConfigSettings.relay_refresh_ip_geo_relay_info = True
         config: Settings = ConfigSettings
 
         query = RelaySQL.update_relays(config.bq_dataset_id, [discovered_relays[0]])
@@ -24,13 +32,19 @@ class TestSQL:
             '''
         )
 
+        ConfigSettings.relay_refresh_ip_geo_relay_info = False
+
+    @pytest.mark.skipif(
+        ConfigSettings.test_without_internet,
+        reason='Internet-requiring tests are disabled',
+    )
     def test_insert_relays_sql(self, discovered_relays):
         config: Settings = ConfigSettings
         query = RelaySQL.insert_relays(
             config.bq_dataset_id, config.bq_relay_table_id, discovered_relays
         )
 
-        assert self.normalise_string(query) == self.normalise_string(
+        assert normalise_string(query) == normalise_string(
             '''
             INSERT INTO `test_event.relay` (name, url, country_code, latitude, longitude, policy)
             VALUES (NULL, 'wss://relay.damus.io', 'USA', 37.78035, -122.39059, STRUCT(True AS read, True AS write)),

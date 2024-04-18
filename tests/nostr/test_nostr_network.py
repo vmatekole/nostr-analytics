@@ -1,8 +1,12 @@
 import json
+import uuid
 from typing import Literal
 
+import pytest
+
+from base.config import ConfigSettings
 from nostr.event import EventKind
-from nostr.filter import Filters
+from nostr.filter import Filter, Filters
 from nostr.message_pool import EventMessage
 from nostr.relay import Relay
 from nostr.relay_manager import RelayManager
@@ -24,6 +28,10 @@ from .fixtures import (
 
 
 class TestNostrNetwork:
+    @pytest.mark.skipif(
+        ConfigSettings.test_without_internet,
+        reason='Internet-requiring tests are disabled',
+    )
     def test_relay_connect(self, reliable_relay_url):
         relay_manager: RelayManager = RelayManager()
         relay_manager.add_relay(reliable_relay_url)
@@ -32,6 +40,10 @@ class TestNostrNetwork:
 
         assert result.ws.sock.connected == True
 
+    @pytest.mark.skipif(
+        ConfigSettings.test_without_internet,
+        reason='Internet-requiring tests are disabled',
+    )
     def test_follow_up_req(
         self,
         reliable_relay_url: Literal['wss://relay.damus.io'],
@@ -41,7 +53,7 @@ class TestNostrNetwork:
         filters = Filters(initlist=[Filter(kinds=[EventKind.CONTACTS])])
         relay_manager.add_relay(reliable_relay_url)
 
-        relay_manager.add_subscription_on_all_relays(id='foo', filters=filters)
+        relay_manager.add_subscription_on_all_relays(id=uuid.uuid4(), filters=filters)
         event_msg: EventMessage = None
         result: list = None
         while True:
@@ -52,6 +64,10 @@ class TestNostrNetwork:
         assert len(result) > 7
         assert result.get(reliable_relay_url) == reliable_relay_policy
 
+    @pytest.mark.skipif(
+        ConfigSettings.test_without_internet,
+        reason='Internet-requiring tests are disabled',
+    )
     def test_get_geo_location_info_for_a_relay(self, damus_relay: str):
         expected_result = {
             'calling_code': '+1',
@@ -73,6 +89,10 @@ class TestNostrNetwork:
         assert damus_info[0]['country_code2'] == expected_result['country_code2']
         assert damus_info[0]['country_name'] == expected_result['country_name']
 
+    @pytest.mark.skipif(
+        ConfigSettings.test_without_internet,
+        reason='Internet-requiring tests are disabled',
+    )
     def test_geo_location_discovered(self, reliable_relay_url):
         relay_manager: RelayManager = RelayManager()
         relay_manager.add_relay(reliable_relay_url)
@@ -81,6 +101,10 @@ class TestNostrNetwork:
 
         assert result.country_code == 'USA'
 
+    @pytest.mark.skipif(
+        ConfigSettings.test_without_internet,
+        reason='Internet-requiring tests are disabled',
+    )
     def test_relay_manager_does_not_duplicate_to_db(self, mocker, damus_relay_url):
         relay_manager: RelayManager = RelayManager()
 

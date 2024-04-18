@@ -21,21 +21,65 @@ Data on Decentralised social networks is sharded and distributed across multiple
 - DBT for data modelling
 - [MetaBase](https://www.metabase.com/) for dashboards
   - Number of active relays displayed on a geographic map
-  - Number of daily events and their [kinds](https://nostrdata.github.io/kinds/)
+  - Number of events  [kinds](https://nostrdata.github.io/kinds/)
 
-## Deployment
-1. Create free tier accounts on the following:
+## Installation
+1. Clone this repo!
+
+2. Create free tier accounts on the following:
 - [BigQuery/GCP](https://cloud.google.com/bigquery?hl=en)
 - [Upstash(Kafka)](https://upstash.com/)
 - [IP Geolocation](https://ipgeolocation.io/documentation.html)
 
-2. Configure the [.env.prd](./.env.prd) with your keys
+3. Generate GCP key that has admin rights to BigQuery and set [default credentials](https://cloud.google.com/docs/authentication/provide-credentials-adc)
 
-3. Run commands:
+4. Install [Terraform](https://developer.hashicorp.com/terraform/install) and [dbt](https://docs.getdbt.com/docs/core/pip-install
 
+
+5. Configure the [.env.prd](./.env.prd) with api keys, etc..
+
+### Terraform (Create BigQuery tables)
 ```
-$ docker run -it vmatekole/nostr-analytics bash
+cd infrastructure/terraform/ && terraform apply
 ```
+
+Run commands:
+
+Nostr Events producer:
+```
+docker compose -f docker-compose.yml up producer_events
+```
+
+Nostr Events consumer:
+```
+docker compose -f docker-compose.yml up consumer_events
+```
+
+Nostr Relays producer:
+```
+docker compose -f docker-compose.yml up producer_relays
+```
+
+
+Nostr Relays consumer:
+```
+docker compose -f docker-compose.yml up consumer_relays
+```
+
+
+DBT Transformation for dashboards:
+```
+cd transformation/ && dbt run
+```
+
+## Tests
+```
+pdm install
+```
+```
+cd tests && pytest
+```
+
 ## Architecture
 ![alt text](./architecture.png)
 ## Future considerations

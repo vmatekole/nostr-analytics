@@ -1,4 +1,7 @@
 import time
+import uuid
+
+import pytest
 
 from base.config import ConfigSettings
 from base.utils import logger
@@ -20,11 +23,15 @@ class TestEventTopic:
 
 
 class TestKafkaProducer:
+    @pytest.mark.skipif(
+        ConfigSettings.test_without_internet,
+        reason='Internet-requiring tests are disabled',
+    )
     def test_serialise_key_topic(self, event_input_data_1):
-        topic_name: str = 'nostr-topic-name'
+        topic_name: str = ConfigSettings.event_kafka_topic
         key: str = 'nostr-key'
         event_topic: EventTopic = EventTopic(**event_input_data_1)
-        producer: NostrProducer = NostrProducer()
+        producer: NostrProducer = NostrProducer(topic_name, EventTopic)
 
         ser_key, ser_topic = producer.serialise_key_topic(
             topic_name=topic_name, key=key, topic=event_topic
@@ -36,11 +43,15 @@ class TestKafkaProducer:
             == b'\x00\x00\x00\x00\x02 Sample content 7\x80\x01bf8752cc0899f447a1254b5fcbc7d18c676a665166b5541fa57b461888a9fdfe\xbe\xf7\xfb\xdd\x0c\x02\x80\x0224a3a244b546f59f09a2c2ca3278e709f5cf52f015102750b4ff75985b36beb8c52986d2274e60511e5d231cbfcd9e27493fef9e0a1cb22411d57d37ab2c8c48\x04\x04\x08tag4\x08tag5\x00\x02\x08tag6\x00\x00'
         )
 
+    @pytest.mark.skipif(
+        ConfigSettings.test_without_internet,
+        reason='Internet-requiring tests are disabled',
+    )
     def test_produce_1_event_topic(self, mocker, event_input_data_1):
         mocker.patch.object(NostrProducer, '_delivery_report')
         try:
-            nostr_producer: NostrProducer = NostrProducer(EventTopic)
             topic_name = ConfigSettings.event_kafka_topic
+            nostr_producer: NostrProducer = NostrProducer(topic_name, EventTopic)
             event_topic: EventTopic = EventTopic(**event_input_data_1)
 
             nostr_producer.produce(topic_name=topic_name, topics=[event_topic])
@@ -49,6 +60,10 @@ class TestKafkaProducer:
         except Exception:
             assert False
 
+    @pytest.mark.skipif(
+        ConfigSettings.test_without_internet,
+        reason='Internet-requiring tests are disabled',
+    )
     def test_produce_1_relay_topic(self, relay_obj_damus, mocker, event_input_data_1):
         mocker.patch.object(NostrProducer, '_delivery_report')
 
@@ -71,8 +86,12 @@ class TestKafkaProducer:
         except Exception:
             assert False
 
+    @pytest.mark.skipif(
+        ConfigSettings.test_without_internet,
+        reason='Internet-requiring tests are disabled',
+    )
     def test_create_event_topics(self):
-        nostr_producer = NostrProducer(EventTopic)
+        nostr_producer = NostrProducer(ConfigSettings.event_kafka_topic, EventTopic)
 
         topics: list[EventTopic] = nostr_producer.event_topics_of_kind(
             kinds=[EventKind(3)], relay_urls=['wss://relay.damus.io'], max_events=10
@@ -81,8 +100,12 @@ class TestKafkaProducer:
         assert len(topics) >= 10
         assert isinstance(topics[0], EventTopic)
 
+    @pytest.mark.skipif(
+        ConfigSettings.test_without_internet,
+        reason='Internet-requiring tests are disabled',
+    )
     def test_create_relay_topics(self):
-        nostr_producer = NostrProducer(RelayTopic)
+        nostr_producer = NostrProducer(ConfigSettings.relay_kafka_topic, RelayTopic)
 
         topics: list[RelayTopic] = nostr_producer.discover_relays(
             urls=['wss://relay.damus.io']
@@ -93,6 +116,10 @@ class TestKafkaProducer:
 
 
 class TestKafkaConsumer:
+    @pytest.mark.skipif(
+        ConfigSettings.test_without_internet,
+        reason='Internet-requiring tests are disabled',
+    )
     def test_consume_1_event_topic(self):
         topic_names: list[str] = [ConfigSettings.event_kafka_topic]
         nostr_consumer: NostrConsumer = NostrConsumer(topic_names, EventTopic)
@@ -112,6 +139,10 @@ class TestKafkaConsumer:
                 assert isinstance(event_topic, EventTopic)
                 break
 
+    @pytest.mark.skipif(
+        ConfigSettings.test_without_internet,
+        reason='Internet-requiring tests are disabled',
+    )
     def test_consume_1_relay_topic(self, relay_obj_damus):
         topic_names: list[str] = [ConfigSettings.relay_kafka_topic]
         nostr_consumer: NostrConsumer = NostrConsumer(topic_names, RelayTopic)
@@ -138,9 +169,13 @@ class TestKafkaConsumer:
                 )
                 break
 
+    @pytest.mark.skipif(
+        ConfigSettings.test_without_internet,
+        reason='Internet-requiring tests are disabled',
+    )
     def test_consume_wrong_topic_1(self):
         topic_names: list[str] = ['not-exist']
-        nostr_consumer: NostrConsumer = NostrConsumer(topic_names)
+        nostr_consumer: NostrConsumer = NostrConsumer(topic_names, EventTopic)
 
         logger.info(
             f'Subscribed to erroneous topic: {topic_names} and trying for 30 secs for available topics'
