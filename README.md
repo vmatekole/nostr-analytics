@@ -24,16 +24,20 @@ Data on Decentralised social networks is sharded and distributed across multiple
   - Number of daily events and their [kinds](https://nostrdata.github.io/kinds/)
 
 ## Deployment
-- Single command deployment using Terraforma:
-  - Data pipelines(Prefect application)
-  - BigQuery datasets
-  - Metabase dashboards
+1. Create free tier accounts on the following:
+- [BigQuery/GCP](https://cloud.google.com/bigquery?hl=en)
+- [Upstash(Kafka)](https://upstash.com/)
+- [IP Geolocation](https://ipgeolocation.io/documentation.html)
 
+2. Configure the [.env.prd](./.env.prd) with your keys
+
+3. Run commands:
+
+```$ docker run -it vmatekole/nostr-analytics bash ```
 ## Architecture
-
+![alt text](./architecture.png)
 ## Future considerations
-– Splitting producer and consumer services
-
+-
 
 ## Usage
 
